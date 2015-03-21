@@ -18,4 +18,5 @@ doesn't set ```$StyleSheet``` or ````$StyleSheetPage```.
 
 ```FDL``` is the license used for the documentation itself (Free
 Documentation License). The *code*, on the other hand, is in yet
-another repository and uses the GPL (General Public License).
+[another repository](https://github.com/kensanata/oddmuse) and uses
+the GPL (General Public License).
