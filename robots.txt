@@ -1,0 +1,14 @@
+User-agent: BLEXBot
+User-agent: 007ac9
+User-agent: MJ12bot
+User-agent: AhrefsBot
+User-agent: SeznamBot
+User-agent: daumoa
+User-agent: SputnikBot
+Disallow: /
+
+User-agent: *
+Crawl-delay: 20
+Disallow: /?
+Disallow: /wiki?
+Disallow: /wiki.pl

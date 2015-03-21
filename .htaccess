@@ -1,0 +1,30 @@
+#! -*- mode:apache-conf-generic -*-
+
+# lots of requests involving ?q=node/add
+Deny from 192.99.0.0/16
+# lots of requests looking for CMS weak spots
+Deny from 183.60.243.188
+
+DirectoryIndex wiki.pl
+AddDefaultCharset utf-8
+
+# ExpiresActive On
+# ExpiresDefault "access plus 1 hours"
+# ExpiresByType image/png "access plus 3 days"
+# ExpiresByType image/jpeg "access plus 3 days"
+# ExpiresByType image/svg+xml "access plus 3 days"
+# ExpiresByType text/css "access plus 3 days"
+# FileETag none
+
+AddType image/svg+xml svg svgz
+AddEncoding gzip svgz
+
+Redirect permanent /cgi-bin/wiki /wiki
+Redirect permanent /cgi-bin/oddmuse /wiki
+Redirect permanent /oddmuse.css /default.css
+
+RewriteEngine on
+RewriteRule ^favicon.ico /pics/oddmuse-logo.png [last]
+# Deny all idiots that are looking for borked PHP applications
+# Status Code 402 is "Payment Required".
+RewriteRule \.php$ - [redirect=402]
