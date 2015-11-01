@@ -20,12 +20,14 @@
 # file in there. It will be loaded automatically.
 #
 use utf8;
-AddModuleDescription('swedish-utf8.pl', 'Swedish', 'translations/', '2.3.4-18-g66972c4');
-%Translate = split(/\n/,<<'END_OF_TRANSLATION');
-This page is empty.
+use strict;
 
-Add your comment here:
+AddModuleDescription('swedish-utf8.pl', 'Swedish', 'translations/', '2.3.5-309-ga8920bf') if defined &AddModuleDescription;
 
+our %Translate = grep(!/^#/, split(/\n/,<<'END_OF_TRANSLATION'));
+################################################################################
+# wiki.pl
+################################################################################
 Reading not allowed: user, ip, or network is blocked.
 Läsning inte tillåten: användare, ip eller nätverk är blockerat.
 Login
@@ -44,6 +46,8 @@ UserName must be 50 characters or less: not saved
 Användarnamn får bestå av högst 50 tecken: Ej sparad.
 This page contains an uploaded file:
 Denna sida innehåller en uppladdad fil:
+No summary was provided for this file.
+
 Recursive include of %s!
 
 Clear Cache
@@ -70,7 +74,7 @@ RSS parsing failed for %s
 Misslyckades med RSS-tolkningen av %s
 No items found in %s.
 Ingen information funnen i %s.
- . . . . 
+ . . . .
 
 Click to edit this page
 Klicka för att redigera den här sidan
@@ -88,6 +92,14 @@ Invalid Page %s (must not end with .lck)
 Ogiltig sida %s (får inte sluta med .lck)
 Invalid Page %s
 Ogiltig sida %s
+There are no comments, yet. Be the first to leave a comment!
+
+Welcome!
+
+This page does not exist, but you can %s.
+
+create it now
+
 Too many redirections
 
 No redirection for old revisions
@@ -118,8 +130,8 @@ List only major changes
 Visa bara stora ändringar
 Include minor changes
 Visa små ändringar också
-%s days
-%s dagar
+days
+
 List later changes
 Visa senare ändringar
 RSS
@@ -131,7 +143,7 @@ RSS with pages and diff
 Filters
 Sålla
 Title:
-Titel:
+
 Title and Body:
 Titel och innehåll:
 Username:
@@ -178,10 +190,8 @@ A username is required for ordinary users.
 
 Rolling back changes
 Återställer
-The two revisions are the same.
-De två versionerna är identiska.
-Editing not allowed for %s.
-%s kan inte redigeras.
+Editing not allowed: %s is read-only.
+Redigering är inte tillåten: %s är skrivskyddad.
 Rollback of %s would restore banned content.
 
 Rollback to %s
@@ -194,12 +204,12 @@ Index of all pages
 Innehållsförteckning
 Wiki Version
 Wikiversion
-Unlock Wiki
-Lås upp wiki
 Password
 Lösenord
 Run maintenance
 Utför underhåll
+Unlock Wiki
+Lås upp wiki
 Unlock site
 Lås upp wikin
 Lock site
@@ -218,16 +228,14 @@ To mark a page for deletion, put <strong>%s</strong> on the first line.
 För att markera en sida för radering, skriv <strong>%s</strong> på första raden.
 from %s
 från %s
-[Home]
-[Startsida]
 redirected from %s
 omdirigerad från %s
-%s: 
+%s:
 
+[Home]
+[Startsida]
 Click to search for references to this page
 Klicka för att söka efter referenser till den här sidan
-Cookie: 
-
 Edit this page
 Redigera sidan
 Preview:
@@ -266,6 +274,8 @@ View all changes
 Visa alla ändringar
 View contributors
 
+Add your comment here:
+
 Homepage URL:
 URL till hemsida:
 s
@@ -284,26 +294,24 @@ Replace:
 Ersätt:
 Delete
 
-Validate HTML
-Validera HTML
-Validate CSS
-Validera CSS
+Filter:
+
 Last edit
 
-Summary:
-Sammanfattning:
-Difference between revision %1 and %2
-Skillnad (från version %1 till %2)
 revision %s
 version %s
 current revision
 rådande version
+Difference between revision %1 and %2
+Skillnad (från version %1 till %2)
 Last major edit (%s)
 
 later minor edits
 
 No diff available.
 Information om ändring är inte tillgänglig.
+Summary:
+Sammanfattning:
 Old revision:
 Gammal version:
 Changed:
@@ -324,17 +332,23 @@ Cannot save a nameless page.
 Kan inte spara en namnlös sida.
 Cannot save a page without revision.
 Kan inte spara en sida utan ändringar.
+not deleted:
+ej borttagen:
+deleted
+borttagen
 Cannot open %s
 Kan inte öppna %s
 Cannot write %s
 Kan inte skriva %s
-unlock the wiki
-
 Could not get %s lock
 Kunde inte låsa %s
 The lock was created %s.
 Låset skapades %s.
 Maybe the user running this script is no longer allowed to remove the lock directory?
+
+Sometimes locks are left behind if a job crashes.
+
+After ten minutes, you could try to unlock the wiki.
 
 This operation may take several seconds...
 Den här funktionen kan ta flera sekunder...
@@ -356,18 +370,6 @@ för %s sekunder sedan
 för 1 sekund sedan
 just now
 just nu
-Edit Denied
-Redigering nekas
-Editing not allowed: user, ip, or network is blocked.
-Redigering inte tillåten: användare, ip-adress eller nätverk är blockerat.
-Contact the wiki administrator for more information.
-Kontakta wiki-administratören för mer information.
-The rule %s matched for you.
-Regeln %s passar in på dig.
-See %s for more information.
-Se %s för mer information.
-Editing not allowed: %s is read-only.
-Redigering är inte tillåten: %s är skrivskyddad.
 Only administrators can upload files.
 Endast administratörer kan ladda upp filer.
 Editing revision %s of
@@ -386,28 +388,42 @@ Replace this file with text
 Skriv text istället för den här filen
 Replace this text with a file
 Använd en fil i stället för den här texten
-File to upload: 
-Fil att ladda upp: 
+File to upload:
+Fil att ladda upp:
 Files of type %s are not allowed.
 Filer av typen %s är inte tillåtna.
 Your password is saved in a cookie, if you have cookies enabled. Cookies may get lost if you connect from another machine, from another account, or using another software.
 Ditt lösenord sparas i en cookie om du har cookies påslagna. Cookies kan försvinna om du ansluter från en annan dator, från ett annat konto eller med ett annat program.
+This site does not use admin or editor passwords.
+Den här webbplatsen använder inte administratörs- eller redaktörslösenord.
 You are currently an administrator on this site.
 Du är för närvarande administratör för den här webbplatsen.
 You are currently an editor on this site.
 Du är för närvarande redaktör för den här webbplatsen.
 You are a normal user on this site.
 Du är en normal användare på den här webbplatsen.
+You do not have a password set.
+
 Your password does not match any of the administrator or editor passwords.
 Ditt lösenord motsvarar inget av admininistratörs- eller redaktörslösenorden.
 Password:
 Lösenord:
-This site does not use admin or editor passwords.
-Den här webbplatsen använder inte administratörs- eller redaktörslösenord.
+Return to %s
+
 This operation is restricted to site editors only...
 Den här funktionen kan bara utföras av redaktörer...
 This operation is restricted to administrators only...
 Den här funktionen kan bara utföras av adminstratörer...
+Edit Denied
+Redigering nekas
+Editing not allowed: user, ip, or network is blocked.
+Redigering inte tillåten: användare, ip-adress eller nätverk är blockerat.
+Contact the wiki administrator for more information.
+Kontakta wiki-administratören för mer information.
+The rule %s matched for you.
+Regeln %s passar in på dig.
+See %s for more information.
+Se %s för mer information.
 SampleUndefinedPage
 OdefinieradExempelsida
 Sample_Undefined_Page
@@ -418,13 +434,11 @@ Reason: %s.
 
 Reason unknown.
 
-Filter:
-
 (for %s)
 (för: %s)
 %s pages found.
 %s sidor.
-Malformed regular expression in %s
+Preview: %s
 
 Replaced: %s
 Ersatt: %s
@@ -478,10 +492,6 @@ Remove the "maintain" file or wait.
 Ta bort "maintain"-filen eller vänta.
 Expiring keep files and deleting pages marked for deletion
 Avlägsnar "keep"-filer och raderar sidor märkta för radering
-not deleted: 
-ej borttagen:
-deleted
-borttagen
 Moving part of the %s log file.
 Flyttar del av %s-loggen.
 Could not open %s log file
@@ -514,8 +524,13 @@ Please do not fetch more than %1 pages in %2 seconds.
 Vänligen hämta inte mer än %1 sidor på %2 sekunder.
 Check whether the web server can create the directory %s and whether it can create files in it.
 Kontrollera att webservern kan skapa biblioteket %s och att den kan skapa filer i det.
-, see 
+, see
 
+The two revisions are the same.
+De två versionerna är identiska.
+################################################################################
+# modules/admin.pl
+################################################################################
 Deleting %s
 Tar bort %s
 Deleted %s
@@ -538,48 +553,73 @@ Immediately delete %s
 Radera %s direkt
 Rename %s to:
 Byt namn på %s till:
+################################################################################
+# modules/advanced-uploads.pl
+################################################################################
 Attach file:
 
 Upload
 
+################################################################################
+# modules/aggregate.pl
+################################################################################
 Learn more...
 Läs mer...
+################################################################################
+# modules/all.pl
+################################################################################
 Complete Content
 Fullständigt innehåll
 The main page is %s.
 Huvudsidan är %s.
+################################################################################
+# modules/archive.pl
+################################################################################
 Archive:
 
+################################################################################
+# modules/backlinkage.pl
+################################################################################
 Rebuild BackLink database
 
-Internal Page: 
+Internal Page: %s
 
 Pages that link to this page
 
+################################################################################
+# modules/backlinks.pl
+################################################################################
 The search parameter is missing.
 
 Pages link to %s
 
+################################################################################
+# modules/ban-contributors.pl
+################################################################################
 Ban contributors
 
 Ban Contributors to %s
 
-%s is banned
-
 Ban!
-
-These URLs were rolled back. Perhaps you want to add a regular expression to %s?
 
 Regular expression:
 
-Consider banning the IP number as well: 
+%s is banned
 
+These URLs were rolled back. Perhaps you want to add a regular expression to %s?
+
+Consider banning the IP number as well:
+
+################################################################################
+# modules/banned-regexps.pl
+################################################################################
 Regular expression "%1" matched "%2" on this page.
 
 Regular expression "%s" matched on this page.
 
-Cannot highlight the language %s.
-Kan ej markera språket %s.
+################################################################################
+# modules/big-brother.pl
+################################################################################
 Recent Visitors
 Senaste besökare
 some action
@@ -588,6 +628,9 @@ was here
 var här
 and read
 och läste
+################################################################################
+# modules/calendar.pl
+################################################################################
 Illegal year value: Use 0001-9999
 
 The match parameter is missing.
@@ -638,38 +681,60 @@ November
 november
 December
 december
+################################################################################
+# modules/checkbox.pl
+################################################################################
 set %s
 
 unset %s
 
+################################################################################
+# modules/clustermap.pl
+################################################################################
 Clustermap
 Klusterkarta
 Pages without a Cluster
 Sidor utan kluster
+################################################################################
+# modules/comment-div-wrapper.pl
+################################################################################
 Comments:
 
-Comments on 
-Kommentarer till 
-Comment on 
-Kommentar till 
+################################################################################
+# modules/commentcount.pl
+################################################################################
+Comments on
+Kommentarer till
+Comment on
+Kommentar till
+################################################################################
+# modules/compilation.pl
+################################################################################
 Compilation for %s
 Sammanställning för %s
 Compilation tag is missing a regular expression.
 Sammanställnings-taggen saknar en "regular expression".
+################################################################################
+# modules/css-install.pl
+################################################################################
 Install CSS
 Installera CSS
 Copy one of the following stylesheets to %s:
 Kopiera en av följande 'stylesheets' till %s:
 Reset
 
+################################################################################
+# modules/dates.pl
+################################################################################
 Extract all dates from the database
 
 Dates
 
 No dates found.
 
-Inter links:
-Interlänkar:
+################################################################################
+# modules/despam.pl
+################################################################################
 List spammed pages
 
 Despamming pages
@@ -684,10 +749,16 @@ Marked as %s.
 Markerad som %s.
 Cannot find unspammed revision.
 Kan inte finna version utan skräptexter
+################################################################################
+# modules/diff.pl
+################################################################################
 Page diff
 
 Diff
 
+################################################################################
+# modules/drafts.pl
+################################################################################
 Recover Draft
 
 No text to save
@@ -702,26 +773,55 @@ Save Draft
 
 Draft Cleanup
 
+Unable to delete draft %s
+
 %1 was last modified %2 and was kept
 
 %1 was last modified %2 and was deleted
 
-Unable to delete draft %s
-
+################################################################################
+# modules/dynamic-comments.pl
+################################################################################
 Add Comment
 Lägg till kommentar
+################################################################################
+# modules/edit-cluster.pl
+################################################################################
 ordinary changes
 vanliga ändringar
+%s days
+%s dagar
+################################################################################
+# modules/edit-paragraphs.pl
+################################################################################
+Could not identify the paragraph you were editing
+
+This is the section you edited:
+
+This is the current page:
+
+################################################################################
+# modules/find.pl
+################################################################################
 Matching page names:
 
+################################################################################
+# modules/fix-encoding.pl
+################################################################################
 Fix character encoding
 
 Fix HTML escapes
 
+################################################################################
+# modules/form_timeout.pl
+################################################################################
 Set $FormTimeoutSalt.
 
 Form Timeout
 
+################################################################################
+# modules/gd_security_image.pl
+################################################################################
 GD or Image::Magick modules not available.
 
 GD::SecurityImage module not available.
@@ -740,8 +840,14 @@ You did not answer correctly.
 Du svarade inte korrekt.
 $GdSecurityImageFont is not set.
 
+################################################################################
+# modules/git-another.pl
+################################################################################
 No summary provided
 
+################################################################################
+# modules/git.pl
+################################################################################
 no summary available
 
 page was marked for deletion
@@ -750,16 +856,40 @@ Oddmuse
 
 Cleaning up git repository
 
-Email: 
+################################################################################
+# modules/google-plus-one.pl
+################################################################################
+Google +1 Buttons
 
+All Pages +1
+
+This page lists the twenty last diary entries and their +1 buttons.
+
+################################################################################
+# modules/gravatar.pl
+################################################################################
+Email:
+
+################################################################################
+# modules/header-and-footer-templates.pl
+################################################################################
 Could not find %1.html template in %2
 Kunde inte finna %1.html-mallen i %2
+################################################################################
+# modules/hiddenpages.pl
+################################################################################
 Only Editors are allowed to see this hidden page.
 
 Only Admins are allowed to see this hidden page.
 
+################################################################################
+# modules/index.pl
+################################################################################
 Index
 Innehållsförteckning
+################################################################################
+# modules/joiner.pl
+################################################################################
 The username %s already exists.
 
 The email address %s has already been used.
@@ -768,7 +898,7 @@ Wait %s minutes before try again.
 
 Registration Confirmation
 
-Visit the link blow to confirm registration.
+Visit the link below to confirm registration.
 
 Recover Account
 
@@ -791,8 +921,6 @@ The username must be valid page name.
 Confirmation email will be sent to the email address.
 
 Repeat Password:
-
-Email:
 
 Bad email address format.
 
@@ -896,40 +1024,81 @@ Unban
 
 Register
 
+################################################################################
+# modules/lang.pl
+################################################################################
 Languages:
 Språk:
 Show!
 Visa!
+################################################################################
+# modules/like.pl
+################################################################################
+====(\d+) persons? liked this====
+
+====%d persons liked this====
+
+====1 person liked this====
+
+I like this!
+
+################################################################################
+# modules/link-all.pl
+################################################################################
 Define
 Definiera
+################################################################################
+# modules/links.pl
+################################################################################
 Full Link List
 Fullständing länklista
+################################################################################
+# modules/list-banned-content.pl
+################################################################################
 Banned Content
 
 Rule "%1" matched on this page.
 
+################################################################################
+# modules/listlocked.pl
+################################################################################
 List of locked pages
 
+################################################################################
+# modules/listtags.pl
+################################################################################
 Pages tagged with %s
 
+################################################################################
+# modules/live-templates.pl
+################################################################################
 Template without parameters
 Mall utan parametrar
 The template %s is either empty or does not exist.
 Mallen %s är antingen tom eller saknas.
+################################################################################
+# modules/localnames.pl
+################################################################################
+Name:
+
+URL:
+
+Define Local Names
+
+Define external redirect:
+
  -- defined on %s
  -- definierad på %s
 Local names defined on %1: %2
 Lokala namn definierade på %1: %2
-Name: 
-
-URL: 
-
-Define Local Names
-
-Define external redirect: 
-
+################################################################################
+# modules/logbannedcontent.pl
+################################################################################
 IP number matched %s
 
+################################################################################
+# modules/login.pl
+################################################################################
 Register for %s
 
 Please choose a username of the form "FirstLast" using your real name.
@@ -1010,14 +1179,11 @@ Approve Pending Registrations for %s
 
 There was an error approving %s.
 
-<ul>
-
-<li>%1 - %2</li>
-
-</ul>
-
 There are no pending registrations.
 
+################################################################################
+# modules/mail.pl
+################################################################################
 Invalid Mail %s: not saved.
 
 unsubscribe
@@ -1031,6 +1197,8 @@ Your mail subscriptions
 All mail subscriptions
 
 Subscriptions
+
+Email: 
 
 Show
 
@@ -1060,16 +1228,65 @@ No non-migrated email addresses found, migration not necessary.
 
 Migrated %s rows.
 
+################################################################################
+# modules/module-bisect.pl
+################################################################################
+Bisect modules
+
+Module Bisect
+
+All modules enabled now!
+
+Go back
+
+Test / Always enabled / Always disabled
+
+Start
+
+Bisection proccess is already active.
+
+Stop
+
+It seems like module %s is causing your problem.
+
+Please note that this module does not handle situations when your problem is caused by a combination of specific modules (which is rare anyway).
+
+Good luck fixing your problem! ;)
+
+Module count (only testable modules):
+
+Current module statuses:
+
+Good
+
+Bad
+
+Enabling %s
+
+################################################################################
+# modules/module-updater.pl
+################################################################################
 Update modules
 
 Module Updater
 
+Looks good. Update modules now!
+
+################################################################################
+# modules/multi-url-spam-block.pl
+################################################################################
 You linked more than %s times to the same domain. It would seem that only a spammer would do this. Your edit is refused.
 
+################################################################################
+# modules/namespaces.pl
+################################################################################
 %s is not a legal name for a namespace
 
 Namespaces
 
+################################################################################
+# modules/near-links.pl
+################################################################################
 Getting page index file for %s.
 Hämtar sidindexfil för %s.
 Near links:
@@ -1086,14 +1303,26 @@ EditNearLinks
 Redigera närlänkar
 The same page on other sites:
 Samma sida på andra siter:
+################################################################################
+# modules/nearlink-create.pl
+################################################################################
  (create locally)
 
+################################################################################
+# modules/no-question-mark.pl
+################################################################################
 image
 bild
 download
 ladda ned
+################################################################################
+# modules/nosearch.pl
+################################################################################
 Backlinks
 
+################################################################################
+# modules/not-found-handler.pl
+################################################################################
 Clearing Cache
 Rensar cachen
 Done.
@@ -1102,12 +1331,18 @@ Generating Link Database
 Skapar länkdatabas
 The 404 handler extension requires the link data extension (links.pl).
 404-hanterarmodulen kräver länkdatamodulen för att fungera (links.pl).
+################################################################################
+# modules/offline.pl
+################################################################################
 Make available offline
 
 Offline
 
 You are currently offline and what you requested is not part of the offline application. You need to be online to do this.
 
+################################################################################
+# modules/olocalmap.pl
+################################################################################
 LocalMap
 
 No page id for action localmap
@@ -1118,107 +1353,158 @@ Local Map for %s
 
 view
 
+################################################################################
+# modules/open-proxy.pl
+################################################################################
 Self-ban by %s
 
 You have banned your own IP.
 
+################################################################################
+# modules/orphans.pl
+################################################################################
 Orphan List
 Lista över övergivna sidor
-Trail: 
-Senast: 
+################################################################################
+# modules/page-trail.pl
+################################################################################
+Trail:
+Senast:
+################################################################################
+# modules/page-type.pl
+################################################################################
 None
 Inga
 Type
 Sort
+################################################################################
+# modules/paragraph-link.pl
+################################################################################
 Permalink to "%s"
 Permanentlänk till "%s"
 anchor first defined here: %s
 ankare definierades först här: %s
 the page %s also exists
 sidan %s finns också
-There was an error generating the pdf for %s.  Please report this to webmaster, but do not try to download again as it will not work.
-
-Someone else is generating a pdf for %s.  Please wait a minute and then try again.
-
-Download this page as PDF
-
+################################################################################
+# modules/permanent-anchors.pl
+################################################################################
 Click to search for references to this permanent anchor
 Klicka för att söka efter referenser till det här permanenta ankaret
 Include permanent anchors
 Med permanenta ankare
+################################################################################
+# modules/portrait-support.pl
+################################################################################
 Portrait
 Porträtt
+################################################################################
+# modules/preview.pl
+################################################################################
+Pages with changed HTML
+
+Preview changes in HTML output
+
+################################################################################
+# modules/private-pages.pl
+################################################################################
 This page is password protected. If you know the password, you can %s. Once you have done that, return and reload this page.
 
 supply the password now
 
+################################################################################
+# modules/private-wiki.pl
+################################################################################
+This error should not happen. If your password is set correctly and you are still seeing this message, then it is a bug, please report it. If you are just a stranger and trying to get unsolicited access, then keep in mind that all of the data is encrypted with AES-256 and the key is not stored on the server, good luck.
+
+Attempt to read encrypted data without a password.
+
+Cannot refresh index.
+
+################################################################################
+# modules/publish.pl
+################################################################################
 Publish %s
 
 No target wiki was specified in the config file.
 
 The target wiki was misconfigured.
 
+################################################################################
+# modules/put.pl
+################################################################################
 Upload is limited to %s bytes
 
+################################################################################
+# modules/questionasker.pl
+################################################################################
 To save this page you must answer this question:
 
+################################################################################
+# modules/recaptcha.pl
+################################################################################
 Please type the following two words:
 
 Please answer this captcha:
 
+################################################################################
+# modules/referrer-rss.pl
+################################################################################
 Referrers
 Sidor som länkat hit
+################################################################################
+# modules/referrer-tracking.pl
+################################################################################
 All Referrers
 Alla som länkat hit
-Tag
-
-Rebuild index for searching
-
-Tag Cloud
-
-Search::FreeText is not available on this system.
-
-Rebuilding index not done.
-
-(Rebuilding the index can only be done once every 12 hours.)
-
-New Pages for Indexed Search
-
-List changes since %s
-
- ... 
-
-Search term missing.
-Sökord saknas.
-Result pages: 
-
-(%s results)
-
-Tags:
-
-Tags: %s.
-
-No tags
-
+################################################################################
+# modules/search-list.pl
+################################################################################
 Page list for %s
 
-Slideshow:%s
-
+################################################################################
+# modules/small.pl
+################################################################################
 Index of all small pages
 
+################################################################################
+# modules/static-copy.pl
+################################################################################
 Static Copy
 Statisk kopia
 Back to %s
 Tillbaka till %s
+################################################################################
+# modules/static-hybrid.pl
+################################################################################
+Editing not allowed for %s.
+%s kan inte redigeras.
+################################################################################
+# modules/svg-edit.pl
+################################################################################
 Edit image in the browser
 
-Summary of your changes: 
+Summary of your changes:
 
+################################################################################
+# modules/sync.pl
+################################################################################
 Copy to %1 succeeded: %2.
 
 Copy to %1 failed: %2.
 
+################################################################################
+# modules/tags.pl
+################################################################################
+Tag
+
 Feed for this tag
+
+Tag Cloud
+
+Rebuilding index not done.
+
+(Rebuilding the index can only be done once every 12 hours.)
 
 Rebuild tag index
 
@@ -1226,43 +1512,32 @@ list tags
 
 tag cloud
 
+################################################################################
+# modules/templates.pl
+################################################################################
 Alternatively, use one of the following templates:
 Eller använd en av följande mallar:
-Thread: %s
-Tråd: %s
-ID parameter is missing.
-ID-parametern saknas.
-Thread %s does not exist.
-Tråden %s finns inte.
-Page %s does not contain a thread.
-Sidan %s innehåller ingen tråd.
-Add
-Lägg till
-URL parameter is missing.
-URL-parametern saknas.
-Add to %s thread
-Lägg till till %s-tråden
-Below:
-Nedan:
-URL:
-URL:
-Name:
-Namn:
+################################################################################
+# modules/throttle.pl
+################################################################################
 Too many instances.  Only %s allowed.
 
 Please try again later. Perhaps somebody is running maintenance or doing a long search. Unfortunately the site has limited resources, and so we must ask you for a bit of patience.
 
+################################################################################
+# modules/thumbs.pl
+################################################################################
 thumb
 
-Error creating thumbnail from non existant page %s.
+Error creating thumbnail from nonexisting page %s.
 
 Can not create thumbnail for file type %s.
 
 Can not create thumbnail for a text document
 
-Could not open %s for writing whilst trying to save image before creating thumbnail. Check write permissions.
-
 Can not create path for thumbnail - %s
+
+Could not open %s for writing whilst trying to save image before creating thumbnail. Check write permissions.
 
 Failed to run %1 to create thumbnail: %2
 
@@ -1272,19 +1547,29 @@ Failed to run %1 to create thumbnail: %2
 
 Failed to parse %s.
 
+################################################################################
+# modules/timezone.pl
+################################################################################
 Timezone
 
 Pick your timezone:
 
 Set
 
+################################################################################
+# modules/toc-headers.pl
+################################################################################
 Contents
 Innehåll
+################################################################################
+# modules/today.pl
+################################################################################
 Create a new page for today
 
+################################################################################
+# modules/translation-links.pl
+################################################################################
 Add Translation
-
-Please provide a different page name for the translation.
 
 Added translation: %1 (%2)
 
@@ -1302,16 +1587,24 @@ Please indicate a page name for the translation of %s.
 
 More help may be available here: %s.
 
-Translated page: 
+Translated page:
 
-This page is a translation of %s. 
-Denna sida är en översättning av %s. 
+Please provide a different page name for the translation.
+
+################################################################################
+# modules/translations.pl
+################################################################################
+This page is a translation of %s.
+Denna sida är en översättning av %s.
 The translation is up to date.
 Denna översättning är aktuell.
 The translation is outdated.
 Denna översättning är föråldrad
 The page does not exist.
 Sidan finns inte.
+################################################################################
+# modules/upgrade.pl
+################################################################################
 Upgrading Database
 
 Did the previous upgrade end with an error? A lock was left behind.
@@ -1322,6 +1615,9 @@ Upgrade complete.
 
 Upgrade complete. Please remove $ModuleDir/upgade.pl, now.
 
+################################################################################
+# modules/usemod.pl
+################################################################################
 http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=%s
 
 http://www.amazon.com/exec/obidos/ISBN=%s
@@ -1332,26 +1628,42 @@ http://www.pricescan.com/books/BookDetail.asp?isbn=%s
 http://www.bokpris.com/%s
 search
 sök
+################################################################################
+# modules/wanted.pl
+################################################################################
 Wanted Pages
 
 %s pages
 
 %s, referenced from:
 
+################################################################################
+# modules/webapp.pl
+################################################################################
 Web application for offline browsing
 
+################################################################################
+# modules/webdav.pl
+################################################################################
 Upload of %s file
 
+################################################################################
+# modules/weblog-1.pl
+################################################################################
 Blog
 Blogg
+################################################################################
+# modules/weblog-3.pl
+################################################################################
 Matching pages:
 
 New
 
 Edit %s.
 
-Title: 
-
-Tags: 
+################################################################################
+# modules/weblog-4.pl
+################################################################################
+Tags:
 
 END_OF_TRANSLATION

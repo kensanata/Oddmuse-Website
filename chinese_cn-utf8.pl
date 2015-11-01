@@ -26,22 +26,23 @@
 #(http://search.cpan.org/~qjzhou/Encode-CNMap-0.32/bin/cnmap) by Qing-Jie Zhou <qjzhou@hotmail.com>.
 #
 use utf8;
-AddModuleDescription('chinese_cn-utf8.pl', 'Chinese', 'translations/', '2.3.4-18-g66972c4');
-$SiteName = '我的Wiki'; # Name of site (used for titles)
-$HomePage = '首页'; # Home page
-$NewText = "新页面内容\n"; # New page text
-$NewComment = "请添加评论\n"; # New comment text
-$BannedContent = '禁用'; # Page for banned content (usually for link-ban)
-$BannedHosts = '封禁地址'; # Page for banned hosts
-$DeletedPage = '删除页面'; # Pages starting with this can be deleted
-$RCName = '最近更新'; # Name of changes page
-$RssExclude = 'RSS排除页面'; # name of the page that lists pages to be excluded from the feed
-$CategoriesPage = '日志类别';
-%Translate = split(/\n/,<<'END_OF_TRANSLATION');
-This page is empty.
+use strict;
 
-Add your comment here:
-
+AddModuleDescription('chinese_cn-utf8.pl', 'Chinese', 'translations/', '2.3.5-309-ga8920bf') if defined &AddModuleDescription;
+our $SiteName = '我的Wiki'; # Name of site (used for titles)
+our $HomePage = '首页'; # Home page
+our $NewText = "新页面内容\n"; # New page text
+our $NewComment = "请添加评论\n"; # New comment text
+our $BannedContent = '禁用'; # Page for banned content (usually for link-ban)
+our $BannedHosts = '封禁地址'; # Page for banned hosts
+our $DeletedPage = '删除页面'; # Pages starting with this can be deleted
+our $RCName = '最近更新'; # Name of changes page
+our $RssExclude = 'RSS排除页面'; # name of the page that lists pages to be excluded from the feed
+our $CategoriesPage = '日志类别';
+our %Translate = grep(!/^#/, split(/\n/,<<'END_OF_TRANSLATION'));
+################################################################################
+# wiki.pl
+################################################################################
 Reading not allowed: user, ip, or network is blocked.
 禁止读取：用户、IP 或是网络已被禁止连接。
 Login
@@ -60,6 +61,8 @@ UserName must be 50 characters or less: not saved
 无法保存, 使用者名称不可超过 50 个字符。
 This page contains an uploaded file:
 本页包含一个已上传的文件：
+No summary was provided for this file.
+
 Recursive include of %s!
 递归包含 %s
 Clear Cache
@@ -86,7 +89,7 @@ RSS parsing failed for %s
 %s的 RSS 解析失败
 No items found in %s.
 在%s中未发现项目。
- . . . . 
+ . . . .
 
 Click to edit this page
 按此即可编辑此页面
@@ -104,6 +107,14 @@ Invalid Page %s (must not end with .lck)
 无效的页面名称%s(不可使用 .lck 做为结尾)
 Invalid Page %s
 无效的页面名称 %s
+There are no comments, yet. Be the first to leave a comment!
+
+Welcome!
+
+This page does not exist, but you can %s.
+
+create it now
+
 Too many redirections
 太多的重定向
 No redirection for old revisions
@@ -134,8 +145,8 @@ List only major changes
 只列出主要的更改
 Include minor changes
 显示次要的更改
-%s days
-%s天
+days
+
 List later changes
 列出随后的更改
 RSS
@@ -194,10 +205,8 @@ A username is required for ordinary users.
 需要一个普通用户的用户名。
 Rolling back changes
 回滚更改
-The two revisions are the same.
-两个版本相同
-Editing not allowed for %s.
-不允许编辑%s。
+Editing not allowed: %s is read-only.
+禁止编辑；%s为只读。
 Rollback of %s would restore banned content.
 
 Rollback to %s
@@ -210,12 +219,12 @@ Index of all pages
 所有页面的索引
 Wiki Version
 显示 Wiki 的版本
-Unlock Wiki
-解锁 Wiki
 Password
 密码
 Run maintenance
 执行维护动作
+Unlock Wiki
+解锁 Wiki
 Unlock site
 解锁网站
 Lock site
@@ -234,16 +243,14 @@ To mark a page for deletion, put <strong>%s</strong> on the first line.
 在首行加入 <strong>%s</strong>以将页面标记为删除。
 from %s
 自 %s
+redirected from %s
+自%s重定向
+%s:
+%s：
 [Home]
 [首页]
-redirected from %s
-自%s重定向 
-%s: 
-%s：
 Click to search for references to this page
 按下即可以搜索参考至本页的数据
-Cookie: 
-Cookie：
 Edit this page
 编辑本页
 Preview:
@@ -282,6 +289,8 @@ View all changes
 列出所有更改
 View contributors
 查看贡献者
+Add your comment here:
+
 Homepage URL:
 首页网址：
 s
@@ -300,26 +309,24 @@ Replace:
 取代：
 Delete
 删除
-Validate HTML
-验证 HTML
-Validate CSS
-验证 CSS
+Filter:
+过滤规则：
 Last edit
 最后编辑
-Summary:
-摘要：
-Difference between revision %1 and %2
-比较第%1版和第%2版之间的差异
 revision %s
 第%s版
 current revision
 当前版本
+Difference between revision %1 and %2
+比较第%1版和第%2版之间的差异
 Last major edit (%s)
 最后主版本编辑 (%s)
 later minor edits
 随后的次要编辑
 No diff available.
 没有差异。
+Summary:
+摘要：
 Old revision:
 旧版本：
 Changed:
@@ -340,17 +347,23 @@ Cannot save a nameless page.
 无法保存没有名称的页面。
 Cannot save a page without revision.
 无法保存没有版本信息的页面。
+not deleted:
+未删除：
+deleted
+已删除
 Cannot open %s
 无法打开 %s
 Cannot write %s
 无法写入 %s
-unlock the wiki
-
 Could not get %s lock
 无法获得%s锁定
 The lock was created %s.
-为 %s 建立锁定 。	
+为 %s 建立锁定 。
 Maybe the user running this script is no longer allowed to remove the lock directory?
+
+Sometimes locks are left behind if a job crashes.
+
+After ten minutes, you could try to unlock the wiki.
 
 This operation may take several seconds...
 这个动作可能要花几秒…
@@ -372,18 +385,6 @@ No unlock required.
 1 秒前
 just now
 刚才
-Edit Denied
-禁止编辑
-Editing not allowed: user, ip, or network is blocked.
-禁止编辑；用户、IP 或是网络已被禁止连接。
-Contact the wiki administrator for more information.
-请通知 wiki 管理员以获得更多的信息。
-The rule %s matched for you.
-符合您的规则：%s。
-See %s for more information.
-请参阅%s以获得更多信息。
-Editing not allowed: %s is read-only.
-禁止编辑；%s为只读。
 Only administrators can upload files.
 只有管理员可以上传文件。
 Editing revision %s of
@@ -402,28 +403,42 @@ Replace this file with text
 用文字来取代本档
 Replace this text with a file
 用文件来取代本文
-File to upload: 
+File to upload:
 要上传的文件：
 Files of type %s are not allowed.
 不允许%s类型的文件。
 Your password is saved in a cookie, if you have cookies enabled. Cookies may get lost if you connect from another machine, from another account, or using another software.
 如果您已经开启了 cookie， 您的密码会被保存在 cookie 中。Cookie可能会因为您使用其他机器、帐号、或别的软件来连接而丢失。
+This site does not use admin or editor passwords.
+本站并不使用管理员或编辑者密码功能。
 You are currently an administrator on this site.
 您现在是本站的管理员。
 You are currently an editor on this site.
 您现在是本站的编辑者。
 You are a normal user on this site.
 您现在是本站的普通用户。
+You do not have a password set.
+
 Your password does not match any of the administrator or editor passwords.
 您的密码和任何管理员或编辑者的密码都不匹配。
 Password:
 密码：
-This site does not use admin or editor passwords.
-本站并不使用管理员或编辑者密码功能。
+Return to %s
+
 This operation is restricted to site editors only...
 这个动作限定只允许编辑者使用…
 This operation is restricted to administrators only...
 这个动作限定只允许管理员使用…
+Edit Denied
+禁止编辑
+Editing not allowed: user, ip, or network is blocked.
+禁止编辑；用户、IP 或是网络已被禁止连接。
+Contact the wiki administrator for more information.
+请通知 wiki 管理员以获得更多的信息。
+The rule %s matched for you.
+符合您的规则：%s。
+See %s for more information.
+请参阅%s以获得更多信息。
 SampleUndefinedPage
 未定义页面
 Sample_Undefined_Page
@@ -434,13 +449,11 @@ Reason: %s.
 原因：%s。
 Reason unknown.
 未知原因。
-Filter:
-过滤规则：
 (for %s)
 (列出%s)
 %s pages found.
 找到%s个页面。
-Malformed regular expression in %s
+Preview: %s
 
 Replaced: %s
 取代：%s
@@ -494,10 +507,6 @@ Remove the "maintain" file or wait.
 移除 "maintain" 档，或等时间到了再进行。
 Expiring keep files and deleting pages marked for deletion
 清除过期的库存档和删除已标记的文件
-not deleted: 
-未删除：
-deleted
-已删除
 Moving part of the %s log file.
 移除部分在%s日志文件中的数据。
 Could not open %s log file
@@ -530,8 +539,13 @@ Please do not fetch more than %1 pages in %2 seconds.
 请不要在 %2 秒内下载超过 %1 页的数据。
 Check whether the web server can create the directory %s and whether it can create files in it.
 请确认网站服务器是否可建立%s目录，并且在其中建立文件。
-, see 
+, see
 
+The two revisions are the same.
+两个版本相同
+################################################################################
+# modules/admin.pl
+################################################################################
 Deleting %s
 正在删除 %s
 Deleted %s
@@ -554,48 +568,73 @@ Immediately delete %s
 立即删除 %s
 Rename %s to:
 将%s重命名为:
+################################################################################
+# modules/advanced-uploads.pl
+################################################################################
 Attach file:
 
 Upload
 
+################################################################################
+# modules/aggregate.pl
+################################################################################
 Learn more...
 了解更多...
+################################################################################
+# modules/all.pl
+################################################################################
 Complete Content
 完整内容
 The main page is %s.
 主页是%s。
+################################################################################
+# modules/archive.pl
+################################################################################
 Archive:
 存档：
+################################################################################
+# modules/backlinkage.pl
+################################################################################
 Rebuild BackLink database
 重建BackLink数据库
-Internal Page: 
-内部页面：
+Internal Page: %s
+内部页面： %s
 Pages that link to this page
 本页的链接页面
+################################################################################
+# modules/backlinks.pl
+################################################################################
 The search parameter is missing.
 未指定 search 参数。
 Pages link to %s
 页面链接至 %s
+################################################################################
+# modules/ban-contributors.pl
+################################################################################
 Ban contributors
 
 Ban Contributors to %s
 
-%s is banned
-
 Ban!
-
-These URLs were rolled back. Perhaps you want to add a regular expression to %s?
 
 Regular expression:
 
-Consider banning the IP number as well: 
+%s is banned
 
+These URLs were rolled back. Perhaps you want to add a regular expression to %s?
+
+Consider banning the IP number as well:
+
+################################################################################
+# modules/banned-regexps.pl
+################################################################################
 Regular expression "%1" matched "%2" on this page.
 
 Regular expression "%s" matched on this page.
 
-Cannot highlight the language %s.
-无法高亮显示语言%s。
+################################################################################
+# modules/big-brother.pl
+################################################################################
 Recent Visitors
 最近的游客
 some action
@@ -604,6 +643,9 @@ was here
 在这里
 and read
 阅读
+################################################################################
+# modules/calendar.pl
+################################################################################
 Illegal year value: Use 0001-9999
 指定的年份无效：请使用0001-9999之间的数字
 The match parameter is missing.
@@ -654,38 +696,60 @@ November
 十一月
 December
 十二月
+################################################################################
+# modules/checkbox.pl
+################################################################################
 set %s
 设置 %s
 unset %s
 取消设置 %s
+################################################################################
+# modules/clustermap.pl
+################################################################################
 Clustermap
 簇页面
 Pages without a Cluster
 不包含簇的页面
+################################################################################
+# modules/comment-div-wrapper.pl
+################################################################################
 Comments:
 
-Comments on 
+################################################################################
+# modules/commentcount.pl
+################################################################################
+Comments on
 评论关于
-Comment on 
+Comment on
 评论关于
+################################################################################
+# modules/compilation.pl
+################################################################################
 Compilation for %s
 %s的汇编
 Compilation tag is missing a regular expression.
 汇编标志缺少一个正规表达式。
+################################################################################
+# modules/css-install.pl
+################################################################################
 Install CSS
 安装CSS
 Copy one of the following stylesheets to %s:
 复制以下样式模板至 %s。
 Reset
 
+################################################################################
+# modules/dates.pl
+################################################################################
 Extract all dates from the database
 
 Dates
 
 No dates found.
 
-Inter links:
-内部链接：
+################################################################################
+# modules/despam.pl
+################################################################################
 List spammed pages
 列出垃圾页面
 Despamming pages
@@ -695,15 +759,21 @@ Spammed pages
 Cannot find revision %s.
 无法获得版本%s。
 Revert to revision %1: %2
-恢复至版本 %1: %2 
+恢复至版本 %1: %2
 Marked as %s.
 标记为%s。
 Cannot find unspammed revision.
 找不到未被 spam 的版本。
+################################################################################
+# modules/diff.pl
+################################################################################
 Page diff
 
 Diff
 
+################################################################################
+# modules/drafts.pl
+################################################################################
 Recover Draft
 恢复草稿
 No text to save
@@ -718,26 +788,55 @@ Save Draft
 保存草稿
 Draft Cleanup
 清除草稿
+Unable to delete draft %s
+不能删除草稿 %s
 %1 was last modified %2 and was kept
 %1 最后修改 %2 已被保持
 %1 was last modified %2 and was deleted
 %1 最后修改 %2 已被删除
-Unable to delete draft %s
-不能删除草稿 %s
+################################################################################
+# modules/dynamic-comments.pl
+################################################################################
 Add Comment
 添加评论
+################################################################################
+# modules/edit-cluster.pl
+################################################################################
 ordinary changes
 普通改动
+%s days
+%s天
+################################################################################
+# modules/edit-paragraphs.pl
+################################################################################
+Could not identify the paragraph you were editing
+
+This is the section you edited:
+
+This is the current page:
+
+################################################################################
+# modules/find.pl
+################################################################################
 Matching page names:
 匹配页名称：
+################################################################################
+# modules/fix-encoding.pl
+################################################################################
 Fix character encoding
 
 Fix HTML escapes
 
+################################################################################
+# modules/form_timeout.pl
+################################################################################
 Set $FormTimeoutSalt.
 
 Form Timeout
 
+################################################################################
+# modules/gd_security_image.pl
+################################################################################
 GD or Image::Magick modules not available.
 
 GD::SecurityImage module not available.
@@ -756,8 +855,14 @@ You did not answer correctly.
 回答不正确。
 $GdSecurityImageFont is not set.
 
+################################################################################
+# modules/git-another.pl
+################################################################################
 No summary provided
 
+################################################################################
+# modules/git.pl
+################################################################################
 no summary available
 
 page was marked for deletion
@@ -766,16 +871,40 @@ Oddmuse
 
 Cleaning up git repository
 
-Email: 
-邮件：
+################################################################################
+# modules/google-plus-one.pl
+################################################################################
+Google +1 Buttons
+
+All Pages +1
+
+This page lists the twenty last diary entries and their +1 buttons.
+
+################################################################################
+# modules/gravatar.pl
+################################################################################
+Email:
+
+################################################################################
+# modules/header-and-footer-templates.pl
+################################################################################
 Could not find %1.html template in %2
 无法在 %2 找到 %1.html 的模板
+################################################################################
+# modules/hiddenpages.pl
+################################################################################
 Only Editors are allowed to see this hidden page.
 只有编辑才允许查看该隐藏页面
 Only Admins are allowed to see this hidden page.
 只有管理员才允许查看该隐藏页面
+################################################################################
+# modules/index.pl
+################################################################################
 Index
 索引
+################################################################################
+# modules/joiner.pl
+################################################################################
 The username %s already exists.
 
 The email address %s has already been used.
@@ -784,7 +913,7 @@ Wait %s minutes before try again.
 
 Registration Confirmation
 
-Visit the link blow to confirm registration.
+Visit the link below to confirm registration.
 
 Recover Account
 
@@ -807,8 +936,6 @@ The username must be valid page name.
 Confirmation email will be sent to the email address.
 
 Repeat Password:
-
-Email:
 
 Bad email address format.
 
@@ -912,40 +1039,81 @@ Unban
 
 Register
 
+################################################################################
+# modules/lang.pl
+################################################################################
 Languages:
 语言：
 Show!
 显示!
+################################################################################
+# modules/like.pl
+################################################################################
+====(\d+) persons? liked this====
+
+====%d persons liked this====
+
+====1 person liked this====
+
+I like this!
+
+################################################################################
+# modules/link-all.pl
+################################################################################
 Define
 定义
+################################################################################
+# modules/links.pl
+################################################################################
 Full Link List
 完整链接列表
+################################################################################
+# modules/list-banned-content.pl
+################################################################################
 Banned Content
 
 Rule "%1" matched on this page.
 
+################################################################################
+# modules/listlocked.pl
+################################################################################
 List of locked pages
 列出被锁定的页面
+################################################################################
+# modules/listtags.pl
+################################################################################
 Pages tagged with %s
 页面标记为%s
+################################################################################
+# modules/live-templates.pl
+################################################################################
 Template without parameters
 未指定 template 参数
 The template %s is either empty or does not exist.
 模板%s可能为空或不存在。
+################################################################################
+# modules/localnames.pl
+################################################################################
+Name:
+
+URL:
+
+Define Local Names
+
+Define external redirect:
+
  -- defined on %s
  -- 在%s中定义
 Local names defined on %1: %2
 定义在%s:%2的局部变量
-Name: 
-
-URL: 
-
-Define Local Names
-
-Define external redirect: 
-
+################################################################################
+# modules/logbannedcontent.pl
+################################################################################
 IP number matched %s
 
+################################################################################
+# modules/login.pl
+################################################################################
 Register for %s
 为%s注册
 Please choose a username of the form "FirstLast" using your real name.
@@ -1026,14 +1194,11 @@ Approve Pending Registrations for %s
 用户“%s”已批准。
 There was an error approving %s.
 批准用户%s注册信息时出错。
-<ul>
-
-<li>%1 - %2</li>
-
-</ul>
-
 There are no pending registrations.
 无待候审批用户
+################################################################################
+# modules/mail.pl
+################################################################################
 Invalid Mail %s: not saved.
 无法保存, 无效的邮件 %s。
 unsubscribe
@@ -1048,6 +1213,8 @@ All mail subscriptions
 所有邮件订阅
 Subscriptions
 订阅
+Email: 
+
 Show
 显示
 Subscriptions for %s:
@@ -1076,16 +1243,65 @@ No non-migrated email addresses found, migration not necessary.
 
 Migrated %s rows.
 
+################################################################################
+# modules/module-bisect.pl
+################################################################################
+Bisect modules
+
+Module Bisect
+
+All modules enabled now!
+
+Go back
+
+Test / Always enabled / Always disabled
+
+Start
+
+Bisection proccess is already active.
+
+Stop
+
+It seems like module %s is causing your problem.
+
+Please note that this module does not handle situations when your problem is caused by a combination of specific modules (which is rare anyway).
+
+Good luck fixing your problem! ;)
+
+Module count (only testable modules):
+
+Current module statuses:
+
+Good
+
+Bad
+
+Enabling %s
+
+################################################################################
+# modules/module-updater.pl
+################################################################################
 Update modules
 
 Module Updater
 
+Looks good. Update modules now!
+
+################################################################################
+# modules/multi-url-spam-block.pl
+################################################################################
 You linked more than %s times to the same domain. It would seem that only a spammer would do this. Your edit is refused.
 您已经对同一个域名的连接已经超过 %s 次。这似乎只有垃圾邮件发送者会这么做。您的编辑被拒绝。
+################################################################################
+# modules/namespaces.pl
+################################################################################
 %s is not a legal name for a namespace
 %s不是一个合法的用户名，请重新设置
 Namespaces
 命名空间
+################################################################################
+# modules/near-links.pl
+################################################################################
 Getting page index file for %s.
 自%s获得页面索引数据。
 Near links:
@@ -1102,14 +1318,26 @@ EditNearLinks
 编辑相邻链接
 The same page on other sites:
 其他网站的相同页面
+################################################################################
+# modules/nearlink-create.pl
+################################################################################
  (create locally)
  (本地创建)
+################################################################################
+# modules/no-question-mark.pl
+################################################################################
 image
 图像
 download
 下载
+################################################################################
+# modules/nosearch.pl
+################################################################################
 Backlinks
 反向链接
+################################################################################
+# modules/not-found-handler.pl
+################################################################################
 Clearing Cache
 清除缓存
 Done.
@@ -1118,12 +1346,18 @@ Generating Link Database
 产生链接数据库
 The 404 handler extension requires the link data extension (links.pl).
 404信息处理扩展单元需要您安装links.pl
+################################################################################
+# modules/offline.pl
+################################################################################
 Make available offline
 
 Offline
 
 You are currently offline and what you requested is not part of the offline application. You need to be online to do this.
 
+################################################################################
+# modules/olocalmap.pl
+################################################################################
 LocalMap
 本地地图
 No page id for action localmap
@@ -1134,151 +1368,191 @@ Local Map for %s
 页面“%s”的本地地图
 view
 查看
+################################################################################
+# modules/open-proxy.pl
+################################################################################
 Self-ban by %s
 被%s自闭
 You have banned your own IP.
 您已经禁止了自己的IP地址。
+################################################################################
+# modules/orphans.pl
+################################################################################
 Orphan List
 孤立页面列表
-Trail: 
+################################################################################
+# modules/page-trail.pl
+################################################################################
+Trail:
 行经页面:
+################################################################################
+# modules/page-type.pl
+################################################################################
 None
 不指定
 Type
 类别
+################################################################################
+# modules/paragraph-link.pl
+################################################################################
 Permalink to "%s"
 永久链接至 "%s"
 anchor first defined here: %s
 锚点已被定义于 %s
 the page %s also exists
 也存在一个叫%s的页面
-There was an error generating the pdf for %s.  Please report this to webmaster, but do not try to download again as it will not work.
-生成%s的pdf时出错。如果生成PDF不能工作请不要再尝试下载， 并报告给管理员。
-Someone else is generating a pdf for %s.  Please wait a minute and then try again.
-其他用户正在生成%s的pdf。请稍候一分钟后再连接。
-Download this page as PDF
-下载该页面为PDF文档
+################################################################################
+# modules/permanent-anchors.pl
+################################################################################
 Click to search for references to this permanent anchor
 按下即可搜索此锚点的相关数据
 Include permanent anchors
 包含永久锚点
+################################################################################
+# modules/portrait-support.pl
+################################################################################
 Portrait
 肖像
+################################################################################
+# modules/preview.pl
+################################################################################
+Pages with changed HTML
+
+Preview changes in HTML output
+
+################################################################################
+# modules/private-pages.pl
+################################################################################
 This page is password protected. If you know the password, you can %s. Once you have done that, return and reload this page.
 
 supply the password now
 
+################################################################################
+# modules/private-wiki.pl
+################################################################################
+This error should not happen. If your password is set correctly and you are still seeing this message, then it is a bug, please report it. If you are just a stranger and trying to get unsolicited access, then keep in mind that all of the data is encrypted with AES-256 and the key is not stored on the server, good luck.
+
+Attempt to read encrypted data without a password.
+
+Cannot refresh index.
+
+################################################################################
+# modules/publish.pl
+################################################################################
 Publish %s
 发表%s
 No target wiki was specified in the config file.
 配置文件中没有设定目标wiki
 The target wiki was misconfigured.
 目标wiki设置有误
+################################################################################
+# modules/put.pl
+################################################################################
 Upload is limited to %s bytes
 
+################################################################################
+# modules/questionasker.pl
+################################################################################
 To save this page you must answer this question:
 保存该页面需要正确回答以下问题：
+################################################################################
+# modules/recaptcha.pl
+################################################################################
 Please type the following two words:
 请键入以下两句话：
 Please answer this captcha:
 请回答这个验证码：
+################################################################################
+# modules/referrer-rss.pl
+################################################################################
 Referrers
 引用者
+################################################################################
+# modules/referrer-tracking.pl
+################################################################################
 All Referrers
 所有的引用者
-Tag
-标签
-Rebuild index for searching
-重建检索索引
-Tag Cloud
-标签云
-Search::FreeText is not available on this system.
-Search::FreeText不存在
-Rebuilding index not done.
-重建索引尚未完成
-(Rebuilding the index can only be done once every 12 hours.)
-（自动重建索引间隔为12个小时。）
-New Pages for Indexed Search
-收录搜索的新页面
-List changes since %s
-列出自 %s 以来的更改
- ... 
- ... 
-Search term missing.
-缺少搜索项。
-Result pages: 
-返回结果：
-(%s results)
-（%s个页面）
-Tags:
-标签：
-Tags: %s.
-标签：%s。
-No tags
-无标签
+################################################################################
+# modules/search-list.pl
+################################################################################
 Page list for %s
 ％s的页面列表
-Slideshow:%s
-自动放映：%s
+################################################################################
+# modules/small.pl
+################################################################################
 Index of all small pages
 索引所有小页面
+################################################################################
+# modules/static-copy.pl
+################################################################################
 Static Copy
 静态页面备份
 Back to %s
 返回 %s
+################################################################################
+# modules/static-hybrid.pl
+################################################################################
+Editing not allowed for %s.
+不允许编辑%s。
+################################################################################
+# modules/svg-edit.pl
+################################################################################
 Edit image in the browser
 
-Summary of your changes: 
+Summary of your changes:
 
+################################################################################
+# modules/sync.pl
+################################################################################
 Copy to %1 succeeded: %2.
 成功复制为%1：%2
 Copy to %1 failed: %2.
 无法复制为%1：%2
+################################################################################
+# modules/tags.pl
+################################################################################
+Tag
+标签
 Feed for this tag
 订阅这个标签
+Tag Cloud
+标签云
+Rebuilding index not done.
+重建索引尚未完成
+(Rebuilding the index can only be done once every 12 hours.)
+（自动重建索引间隔为12个小时。）
 Rebuild tag index
 重建标签索引
 list tags
 列出标签
 tag cloud
 标签云
+################################################################################
+# modules/templates.pl
+################################################################################
 Alternatively, use one of the following templates:
 或者，使用下列模板之一:
-Thread: %s
-讨论主题: %s
-ID parameter is missing.
-未指定 ID 参数。
-Thread %s does not exist.
-讨论主题%s不存在。
-Page %s does not contain a thread.
-页面%s不包含讨论主题.
-Add
-加入
-URL parameter is missing.
-未指定 URL 参数。
-Add to %s thread
-加入%s讨论主题
-Below:
-以下:
-URL:
-网址:
-Name:
-姓名:
+################################################################################
+# modules/throttle.pl
+################################################################################
 Too many instances.  Only %s allowed.
 太多的实例。只有%s被允许。
 Please try again later. Perhaps somebody is running maintenance or doing a long search. Unfortunately the site has limited resources, and so we must ask you for a bit of patience.
 请稍后再试。也许有人正在运行维护或耗时搜索。不幸的是，站点的资源有限，还请您保持耐心。
+################################################################################
+# modules/thumbs.pl
+################################################################################
 thumb
 
-Error creating thumbnail from non existant page %s.
+Error creating thumbnail from nonexisting page %s.
 
 Can not create thumbnail for file type %s.
 
 Can not create thumbnail for a text document
 
-Could not open %s for writing whilst trying to save image before creating thumbnail. Check write permissions.
-
 Can not create path for thumbnail - %s
+
+Could not open %s for writing whilst trying to save image before creating thumbnail. Check write permissions.
 
 Failed to run %1 to create thumbnail: %2
 
@@ -1288,20 +1562,30 @@ Failed to run %1 to create thumbnail: %2
 
 Failed to parse %s.
 
+################################################################################
+# modules/timezone.pl
+################################################################################
 Timezone
 
 Pick your timezone:
 
 Set
 
+################################################################################
+# modules/toc-headers.pl
+################################################################################
 Contents
 内容
+################################################################################
+# modules/today.pl
+################################################################################
 Create a new page for today
 创建一个今天的新页面
+################################################################################
+# modules/translation-links.pl
+################################################################################
 Add Translation
 添加翻译
-Please provide a different page name for the translation.
-
 Added translation: %1 (%2)
 已添加翻译：%1 (%2)
 Translate %s
@@ -1318,9 +1602,14 @@ Please indicate a page name for the translation of %s.
 请指定 %s 的翻译页面名称
 More help may be available here: %s.
 在 %s 查找更多帮助
-Translated page: 
+Translated page:
 已翻译页面：
-This page is a translation of %s. 
+Please provide a different page name for the translation.
+
+################################################################################
+# modules/translations.pl
+################################################################################
+This page is a translation of %s.
 本页是页面%s的翻译。
 The translation is up to date.
 本页翻译符合最新的内容。
@@ -1328,6 +1617,9 @@ The translation is outdated.
 本页翻译已过期。
 The page does not exist.
 页面不存在。
+################################################################################
+# modules/upgrade.pl
+################################################################################
 Upgrading Database
 
 Did the previous upgrade end with an error? A lock was left behind.
@@ -1338,6 +1630,9 @@ Upgrade complete.
 
 Upgrade complete. Please remove $ModuleDir/upgade.pl, now.
 
+################################################################################
+# modules/usemod.pl
+################################################################################
 http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=%s
 
 http://www.amazon.com/exec/obidos/ISBN=%s
@@ -1348,26 +1643,42 @@ http://www.pricescan.com/books/BookDetail.asp?isbn=%s
 
 search
 搜索
+################################################################################
+# modules/wanted.pl
+################################################################################
 Wanted Pages
 悬赏页面
 %s pages
 %s个页面
 %s, referenced from:
 %s，引用自：
+################################################################################
+# modules/webapp.pl
+################################################################################
 Web application for offline browsing
 
+################################################################################
+# modules/webdav.pl
+################################################################################
 Upload of %s file
 上传%s个文件
+################################################################################
+# modules/weblog-1.pl
+################################################################################
 Blog
 日志
+################################################################################
+# modules/weblog-3.pl
+################################################################################
 Matching pages:
 匹配页面：
 New
 新增日志
 Edit %s.
 编辑%s。
-Title: 
-标题：
-Tags: 
+################################################################################
+# modules/weblog-4.pl
+################################################################################
+Tags:
 标签：
 END_OF_TRANSLATION
