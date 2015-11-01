@@ -14,7 +14,7 @@ The ```-utf8.pl``` files are translation files.
 runs ```current.pl```.
 
 ```default.css``` is the CSS file for anybody who installs Oddmuse and
-doesn't set ```$StyleSheet``` or ````$StyleSheetPage```.
+doesn't set ```$StyleSheet``` or ```$StyleSheetPage```.
 
 ```FDL``` is the license used for the documentation itself (Free
 Documentation License). The *code*, on the other hand, is in yet
