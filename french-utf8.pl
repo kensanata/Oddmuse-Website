@@ -24,7 +24,7 @@
 use utf8;
 use strict;
 
-AddModuleDescription('french-utf8.pl', 'French', 'translations/', '2.3.5-309-ga8920bf') if defined &AddModuleDescription;
+AddModuleDescription('french-utf8.pl', 'French', 'translations/', '2.3.10-48-g07b3169') if defined &AddModuleDescription;
 
 our %Translate = grep(!/^#/, split(/\n/,<<'END_OF_TRANSLATION'));
 ################################################################################
@@ -142,6 +142,8 @@ RSS with pages
 RSS avec pages
 RSS with pages and diff
 RSS avec pages et différences
+Using the ｢rollback｣ button on this page will reset the wiki to that particular point in time, undoing any later changes to all of the pages.
+
 Filters
 Filtres
 Title:
@@ -170,6 +172,8 @@ This page is too big to send over RSS.
 Cette page est trop grande pour être envoyée sur RSS
 History of %s
 Historique de %s
+Using the ｢rollback｣ button on this page will reset the page to that particular point in time, undoing any later changes to this page.
+
 Compare
 Comparer
 Deleted
@@ -717,6 +721,11 @@ Compilation pour %s
 Compilation tag is missing a regular expression.
 Une expression régulière manque au tag de compilation.
 ################################################################################
+# modules/creationdate.pl
+################################################################################
+Add creation date to page files
+
+################################################################################
 # modules/css-install.pl
 ################################################################################
 Install CSS
@@ -1245,7 +1254,7 @@ Test / Always enabled / Always disabled
 
 Start
 
-Bisection proccess is already active.
+Bisecting proccess is already active.
 
 Stop
 
@@ -1470,6 +1479,21 @@ Liste des pages pour %s
 Index of all small pages
 Index de toutes les pages de petite taille
 ################################################################################
+# modules/sort.pl
+################################################################################
+Sort alphabetically
+
+Sorted alphabetically
+
+Sorted by last update first
+
+Sort by last update
+
+Sorted by creation date
+
+Sort by creation date
+
+################################################################################
 # modules/static-copy.pl
 ################################################################################
 Static Copy
@@ -1668,4 +1692,5 @@ Edit %s.
 ################################################################################
 Tags:
 Tags :
+#
 END_OF_TRANSLATION

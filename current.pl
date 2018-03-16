@@ -38,6 +38,7 @@ use utf8; # in case anybody ever adds UTF8 characters to the source
 use CGI qw/-utf8/;
 use CGI::Carp qw(fatalsToBrowser);
 use File::Glob ':glob';
+use Encode qw(encode_utf8 decode_utf8);
 use sigtrap 'handler' => \&HandleSignals, 'normal-signals', 'error-signals';
 local $| = 1; # Do not buffer output (localized for mod_perl)
 
@@ -66,8 +67,9 @@ our $UseConfig //= 1;
 
 # Main wiki directory
 our $DataDir;
-$DataDir    ||= $ENV{WikiDataDir} if $UseConfig;
+$DataDir    ||= decode_utf8($ENV{WikiDataDir}) if $UseConfig;
 $DataDir    ||= '/tmp/oddmuse'; # FIXME: /var/opt/oddmuse/wiki ?
+$DataDir    = "./$DataDir" unless $DataDir =~ m!^(/|\./)!;
 
 our $ConfigFile;
 $ConfigFile ||= $ENV{WikiConfigFile} if $UseConfig;
@@ -227,17 +229,20 @@ sub Init {
 }
 
 sub InitModules {
-  if ($UseConfig and $ModuleDir and -d $ModuleDir) {
-    foreach my $lib (bsd_glob("$ModuleDir/*.p[ml]")) {
-      do $lib unless $MyInc{$lib};
-      $MyInc{$lib} = 1;   # Cannot use %INC in mod_perl settings
-      $Message .= CGI::p("$lib: $@") if $@; # no $q exists, yet
+  if ($UseConfig and $ModuleDir and IsDir($ModuleDir)) {
+    foreach my $lib (Glob("$ModuleDir/*.p[ml]")) {
+      if (not $MyInc{$lib}) {
+	$MyInc{$lib} = 1;   # Cannot use %INC in mod_perl settings
+	my $file = encode_utf8($lib);
+	do $file;
+	$Message .= CGI::p("$lib: $@") if $@; # no $q exists, yet
+      }
     }
   }
 }
 
 sub InitConfig {
-  if ($UseConfig and $ConfigFile and not $INC{$ConfigFile} and -f $ConfigFile) {
+  if ($UseConfig and $ConfigFile and not $INC{$ConfigFile} and IsFile($ConfigFile)) {
     do $ConfigFile; # these options must be set in a wrapper script or via the environment
     $Message .= CGI::p("$ConfigFile: $@") if $@; # remember, no $q exists, yet
   }
@@ -250,7 +255,6 @@ sub InitConfig {
 }
 
 sub InitDirConfig {
-  utf8::decode($DataDir); # just in case, eg. "WikiDataDir=/tmp/Zürich♥ perl wiki.pl"
   $PageDir     = "$DataDir/page";  # Stores page data
   $KeepDir     = "$DataDir/keep";  # Stores kept (old) page data
   $TempDir     = "$DataDir/temp";  # Temporary files and locks
@@ -272,7 +276,7 @@ sub InitRequest { # set up $q
 }
 
 sub InitVariables {  # Init global session variables for mod_perl!
-  $WikiDescription = $q->p($q->a({-href=>'http://git.savannah.gnu.org/cgit/oddmuse.git/tag/?id=2.3.5-309-ga8920bf'}, 'wiki.pl') . ' (2.3.5-309-ga8920bf), see ' . $q->a({-href=>'http://www.oddmuse.org/'}, 'Oddmuse'),
+  $WikiDescription = $q->p($q->a({-href=>'https://git.savannah.gnu.org/cgit/oddmuse.git/tag/?id=2.3.10-48-g07b3169'}, 'wiki.pl') . ' (2.3.10-48-g07b3169), see ' . $q->a({-href=>'https://www.oddmuse.org/'}, 'Oddmuse'),
 			   $Counter++ > 0 ? Ts('%s calls', $Counter) : '');
   $WikiDescription .= $ModulesDescription if $ModulesDescription;
   $HeaderIsPrinted = 0; # print HTTP headers only once
@@ -300,12 +304,12 @@ sub InitVariables {  # Init global session variables for mod_perl!
   delete $PlainTextPages{''}; # $ConfigPage and others might be empty.
   CreateDir($DataDir);    # Create directory if it doesn't exist
   $Now = time;      # Reset in case script is persistent
-  my $ts = (stat($IndexFile))[9]; # always stat for multiple server processes
+  my $ts = Modified($IndexFile); # always stat for multiple server processes
   ReInit() if not $ts or $LastUpdate != $ts; # reinit if another process changed files (requires $DataDir)
   $LastUpdate = $ts;
   unshift(@MyRules, \&MyRules) if defined(&MyRules) && (not @MyRules or $MyRules[0] != \&MyRules);
   @MyRules = sort {$RuleOrder{$a} <=> $RuleOrder{$b}} @MyRules; # default is 0
-  ReportError(Ts('Cannot create %s', $DataDir) . ": $!", '500 INTERNAL SERVER ERROR') unless -d $DataDir;
+  ReportError(Ts('Cannot create %s', $DataDir) . ": $!", '500 INTERNAL SERVER ERROR') unless IsDir($DataDir);
   @IndexOptions = (['pages', T('Include normal pages'), 1, \&AllPagesList]);
   foreach my $sub (@MyInitVariables) {
     my $result = $sub->();
@@ -360,8 +364,7 @@ sub CookieRollbackFix {
 
 sub GetParam {
   my ($name, $default) = @_;
-  utf8::encode($name); # turn to byte string
-  my $result = $q->param($name);
+  my $result = $q->param(encode_utf8($name));
   $result //= $default;
   return QuoteHtml($result); # you need to unquote anything that can have <tags>
 }
@@ -376,7 +379,7 @@ sub InitLinkPatterns {
   $QDelim = '(?:"")?'; # Optional quote delimiter (removed from the output)
   $WikiWord = '\p{Uppercase}+\p{Lowercase}+\p{Uppercase}\p{Alphabetic}*';
   $LinkPattern = "($WikiWord)$QDelim";
-  $FreeLinkPattern = "([-,.()'%&?;<> _1-9A-Za-z\x{0080}-\x{fffd}]|[-,.()'%&?;<> _0-9A-Za-z\x{0080}-\x{fffd}][-,.()'%&?;<> _0-9A-Za-z\x{0080}-\x{fffd}]+)"; # disallow "0" and must match HTML and plain text (ie. > and &gt;)
+  $FreeLinkPattern = "([-,.()'%&!?;<> _1-9A-Za-z\x{0080}-\x{fffd}]|[-,.()'%&!?;<> _0-9A-Za-z\x{0080}-\x{fffd}][-,.()'%&!?;<> _0-9A-Za-z\x{0080}-\x{fffd}]+)"; # disallow "0" and must match HTML and plain text (ie. > and &gt;)
   # Intersites must start with uppercase letter to avoid confusion with URLs.
   $InterSitePattern = '[A-Z\x{0080}-\x{fffd}]+[A-Za-z\x{0080}-\x{fffd}]+';
   $InterLinkPattern = "($InterSitePattern:[-a-zA-Z0-9\x{0080}-\x{fffd}_=!?#\$\@~`\%&*+\\/:;.,]*[-a-zA-Z0-9\x{0080}-\x{fffd}_=#\$\@~`\%&*+\\/])$QDelim";
@@ -684,10 +687,10 @@ sub CloseHtmlEnvironments { # close all -- remember to use AddHtmlEnvironment('p
 }
 
 sub CloseHtmlEnvironment {  # close environments up to and including $html_tag
-  my $html = (@_ and InElement(@_)) ? CloseHtmlEnvironmentUntil(@_) : '';
+  my $html = (@_ and InElement(@_)) ? CloseHtmlEnvironmentUntil(@_) : undef;
   if (@HtmlStack and (not(@_) or defined $html)) {
     shift(@HtmlAttrStack);
-    return $html . '</' . shift(@HtmlStack) . '>';
+    $html .= '</' . shift(@HtmlStack) . '>';
   }
   return $html || ''; # avoid returning undefined
 }
@@ -786,8 +789,7 @@ sub UnquoteHtml {
 sub UrlEncode {
   my $str = shift;
   return '' unless $str;
-  utf8::encode($str); # turn to byte string
-  my @letters = split(//, $str);
+  my @letters = split(//, encode_utf8($str));
   my %safe = map {$_ => 1} ('a' .. 'z', 'A' .. 'Z', '0' .. '9', '-', '_', '.', '!', '~', '*', "'", '(', ')', '#');
   foreach my $letter (@letters) {
     $letter = sprintf("%%%02x", ord($letter)) unless $safe{$letter};
@@ -797,8 +799,7 @@ sub UrlEncode {
 
 sub UrlDecode {
   my $str = shift;
-  $str =~ s/%([0-9a-f][0-9a-f])/chr(hex($1))/eg;
-  utf8::decode($str); # make internal string
+  return decode_utf8($str) if $str =~ s/%([0-9a-f][0-9a-f])/chr(hex($1))/eg;
   return $str;
 }
 
@@ -1013,7 +1014,7 @@ sub GetRss {
   my $str = '';
   if (GetParam('cache', $UseCache) > 0) {
     foreach my $uri (keys %todo) { # read cached rss files if possible
-      if ($Now - (stat($todo{$uri}))[9] < $RssCacheHours * 3600) {
+      if ($Now - Modified($todo{$uri}) < $RssCacheHours * 3600) {
 	$data{$uri} = ReadFile($todo{$uri});
 	delete($todo{$uri});  # no need to fetch them below
       }
@@ -1256,16 +1257,14 @@ sub PrintPageDiff {   # print diff for open page
 }
 
 sub ToString {
-  my ($sub_ref) = @_;
+  my $sub_ref = shift;
   my $output;
   open(my $outputFH, '>:encoding(UTF-8)', \$output) or die "Can't open memory file: $!";
   my $oldFH = select $outputFH;
-  $sub_ref->();
+  $sub_ref->(@_);
   select $oldFH;
   close $outputFH;
-  my $output_fixed = $output;  # do not delete!
-  utf8::decode($output_fixed); # this is a workarond for perl bug
-  return $output_fixed;        # otherwise UTF8 characters are SOMETIMES not decoded.
+  return decode_utf8($output);
 }
 
 sub PageHtml {
@@ -1299,17 +1298,11 @@ sub Tss {
 
 sub GetId {
   my $id = UnquoteHtml(GetParam('id', GetParam('title', ''))); # id=x or title=x -> x
-  if (not $id) {
-    my @keywords = $q->keywords;
-    foreach my $keyword (@keywords) {
-      utf8::decode($keyword);
-    }
-    $id ||= join('_', @keywords); # script?p+q -> p_q
+  if (not $id and $q->keywords) {
+    $id = decode_utf8(join('_', $q->keywords)); # script?p+q -> p_q
   }
-  if ($UsePathInfo) {
-    my $path = $q->path_info;
-    utf8::decode($path);
-    my @path = split(/\//, $path);
+  if ($UsePathInfo and $q->path_info) {
+    my @path = map { decode_utf8($_) } split(/\//, $q->path_info);
     $id ||= pop(@path); # script/p/q -> q
     foreach my $p (@path) {
       SetParam($p, 1);    # script/p/q -> p=1
@@ -1376,8 +1369,8 @@ sub BrowseResolvedPage {
     ReBrowsePage($resolved);
   } elsif (not $resolved and $NotFoundPg and $id !~ /$CommentsPattern/) { # custom page-not-found message
     BrowsePage($NotFoundPg);
-  } elsif ($resolved) {   # an existing page was found
-    BrowsePage($resolved, GetParam('raw', 0));
+  } elsif ($resolved or $id =~ /$CommentsPattern/ and $1 and $IndexHash{$1}) { # an existing page
+    BrowsePage(($resolved or $id), GetParam('raw', 0));
   } else {      # new page!
     BrowsePage($id, GetParam('raw', 0), undef, '404 NOT FOUND') if ValidIdOrDie($id);
   }
@@ -1504,7 +1497,7 @@ sub GetRcLines { # starttime, hash of seen pages to use as a second return value
   my @result = ();
   my $ts;
   # check the first timestamp in the default file, maybe read old log file
-  if (open(my $F, '<:encoding(UTF-8)', $RcFile)) {
+  if (open(my $F, '<:encoding(UTF-8)', encode_utf8($RcFile))) {
     my $line = <$F>;
     ($ts) = split(/$FS/, $line); # the first timestamp in the regular rc file
   }
@@ -1588,7 +1581,7 @@ sub GetRcLinesFor {
         rcclusteronly rcfilteronly match lang followup);
   # parsing and filtering
   my @result = ();
-  open(my $F, '<:encoding(UTF-8)', $file) or return ();
+  open(my $F, '<:encoding(UTF-8)', encode_utf8($file)) or return ();
   while (my $line = <$F>) {
     chomp($line);
     my ($ts, $id, $minor, $summary, $host, $username, $revision,
@@ -1693,8 +1686,7 @@ sub RcHeader {
     push(@menu, ScriptLink("$action;days=$days;all=$all;showedit=1",
 			   T('Include minor changes')));
   }
-  return $html .
-    $q->p(join(' | ', (map { ScriptLink("$action;days=$_;all=$all;showedit=$edits", $_); } @RcDays)),
+  $html .= $q->p(join(' | ', (map { ScriptLink("$action;days=$_;all=$all;showedit=$edits", $_); } @RcDays)),
           T('days'), $q->br(), @menu, $q->br(),
 	  ScriptLink($action . ';from=' . ($LastUpdate + 1)
 		     . ";all=$all;showedit=$edits", T('List later changes')),
@@ -1702,6 +1694,8 @@ sub RcHeader {
 	  ScriptLink("$rss;full=1", T('RSS with pages'), 'rss pages nodiff'),
 	  ScriptLink("$rss;full=1;diff=1", T('RSS with pages and diff'),
 		     'rss pages diff'));
+  $html .= $q->p({-class => 'documentation'}, T('Using the ｢rollback｣ button on this page will reset the wiki to that particular point in time, undoing any later changes to all of the pages.')) if UserIsAdmin() and GetParam('all', $ShowAll);
+  return $html;
 }
 
 sub GetScriptUrlWithRcParameters {
@@ -1992,26 +1986,30 @@ sub DoHtmlHistory {
   my ($id) = @_;
   print GetHeader('', Ts('History of %s', NormalToFree($id)));
   my $row = 0;
-  my $rollback = UserCanEdit($id, 0) && (GetParam('username', '')
-					 or UserIsEditor());
+  my $rollback = UserCanEdit($id, 0) && (GetParam('username', '') or UserIsEditor());
   my $date = CalcDay($Page{ts});
-  my @html = (GetHistoryLine($id, \%Page, $row++, $rollback, $date, 1));
+  my @html = (GetFormStart(undef, 'get', 'history'));
+  push(@html, $q->p({-class => 'documentation'}, T('Using the ｢rollback｣ button on this page will reset the page to that particular point in time, undoing any later changes to this page.'))) if $rollback;
+  push(@html, $q->p(# don't use $q->hidden here!
+		    $q->input({-type=>'hidden', -name=>'action', -value=>'browse'}),
+		    $q->input({-type=>'hidden', -name=>'diff', -value=>'1'}),
+		    $q->input({-type=>'hidden', -name=>'id', -value=>$id})));
+  # list of rows with revisions, starting with current revision
+  push(@html, $q->p($q->submit({-name=>T('Compare')}))) if $UseDiff;
+  my @rows = (GetHistoryLine($id, \%Page, $row++, $rollback, $date, 1));
   foreach my $revision (GetKeepRevisions($OpenPageName)) {
     my $keep = GetKeptRevision($revision);
     my $new = CalcDay($keep->{ts});
-    push(@html, GetHistoryLine($id, $keep, $row++, $rollback,
-			       $new, $new ne $date));
+    push(@rows, GetHistoryLine($id, $keep, $row++, $rollback, $new, $new ne $date));
     $date = $new;
   }
-  @html = (GetFormStart(undef, 'get', 'history'),
-	   $q->p($q->submit({-name=>T('Compare')}),
-		 # don't use $q->hidden here!
-		 $q->input({-type=>'hidden', -name=>'action', -value=>'browse'}),
-		 $q->input({-type=>'hidden', -name=>'diff', -value=>'1'}),
-		 $q->input({-type=>'hidden', -name=>'id', -value=>$id})),
-	   $q->table({-class=>'history'}, @html),
-	   $q->p($q->submit({-name=>T('Compare')})),
-	   $q->end_form()) if $UseDiff;
+  # if we can use diff, add radio-buttons and compare buttons if $UseDiff
+  if ($UseDiff) {
+    push(@html, $q->table({-class=>'history'}, @rows),
+	 $q->p($q->submit({-name=>T('Compare')})), $q->end_form());
+  } else {
+    push(@html, @rows);
+  }
   if ($KeepDays and $rollback and $Page{revision}) {
     push(@html, $q->p(ScriptLink('title=' . UrlEncode($id) . ';text='
 				 . UrlEncode($DeletedPage) . ';summary='
@@ -2125,8 +2123,8 @@ sub DoAdminPage {
   push(@menu, ScriptLink('action=maintain', T('Run maintenance'), 'maintain')) if $Action{maintain};
   my @locks;
   for my $pattern (@KnownLocks) {
-    for my $name (bsd_glob $pattern) {
-      if (-d $LockDir . $name) {
+    for my $name (Glob($pattern)) {
+      if (IsDir($LockDir . $name)) {
 	push(@locks, $name);
       }
     }
@@ -2136,7 +2134,7 @@ sub DoAdminPage {
   };
   if (UserIsAdmin()) {
     if ($Action{editlock}) {
-      if (-f "$DataDir/noedit") {
+      if (IsFile("$DataDir/noedit")) {
 	push(@menu, ScriptLink('action=editlock;set=0', T('Unlock site'), 'editlock 0'));
       } else {
 	push(@menu, ScriptLink('action=editlock;set=1', T('Lock site'),   'editlock 1'));
@@ -2144,7 +2142,7 @@ sub DoAdminPage {
     }
     if ($id and $Action{pagelock}) {
       my $title = NormalToFree($id);
-      if (-f GetLockedPageFile($id)) {
+      if (IsFile(GetLockedPageFile($id))) {
 	push(@menu, ScriptLink('action=pagelock;set=0;id=' . UrlEncode($id),
 			       Ts('Unlock %s', $title), 'pagelock 0'));
       } else {
@@ -2373,11 +2371,11 @@ sub GetFeeds {      # default for $HtmlHeaders
 
 sub GetCss {      # prevent javascript injection
   my @css = map { my $x = $_; $x =~ s/\".*//; $x; } split(/\s+/, GetParam('css', ''));
-  push (@css, $StyleSheet) if $StyleSheet and not @css;
+  push (@css, ref $StyleSheet ? @$StyleSheet : $StyleSheet) if $StyleSheet and not @css;
   if ($IndexHash{$StyleSheetPage} and not @css) {
     push (@css, "$ScriptName?action=browse;id=" . UrlEncode($StyleSheetPage) . ";raw=1;mime-type=text/css")
   }
-  push (@css, 'http://www.oddmuse.org/default.css') unless @css;
+  push (@css, 'https://oddmuse.org/default.css') unless @css;
   return join('', map { qq(<link type="text/css" rel="stylesheet" href="$_" />) } @css);
 }
 
@@ -2604,10 +2602,10 @@ sub DoDiff {      # Actualy call the diff program
   RequestLockDir('diff') or return '';
   WriteStringToFile($oldName, $_[0]);
   WriteStringToFile($newName, $_[1]);
-  my $diff_out = `diff -- \Q$oldName\E \Q$newName\E`;
-  utf8::decode($diff_out); # needs decoding
-  $diff_out =~ s/\n\K\\ No newline.*\n//g; # Get rid of common complaint.
+  my $command = encode_utf8("diff -- \Q$oldName\E \Q$newName\E");
+  my $diff_out = decode_utf8(qx($command));
   ReleaseLockDir('diff');
+  $diff_out =~ s/\n\K\\ No newline.*\n//g; # Get rid of common complaint.
   # No need to unlink temp files--next diff will just overwrite.
   return $diff_out;
 }
@@ -2782,7 +2780,7 @@ sub GetKeepDir {
 }
 
 sub GetKeepFiles {
-  return bsd_glob(GetKeepDir(shift) . '/*.kp'); # files such as 1.kp, 2.kp, etc.
+  return Glob(GetKeepDir(shift) . '/*.kp'); # files such as 1.kp, 2.kp, etc.
 }
 
 sub GetKeepRevisions {
@@ -2843,14 +2841,12 @@ sub ExpireKeepFiles {   # call with opened page
     my $keep = GetKeptRevision($revision);
     next if $keep->{'keep-ts'} >= $expirets;
     next if $KeepMajor and $keep->{revision} == $Page{lastmajor};
-    unlink GetKeepFile($OpenPageName, $revision);
+    Unlink(GetKeepFile($OpenPageName, $revision));
   }
 }
 
 sub ReadFile {
-  my $file = shift;
-  utf8::encode($file); # filenames are bytes!
-  if (open(my $IN, '<:encoding(UTF-8)', $file)) {
+  if (open(my $IN, '<:encoding(UTF-8)', encode_utf8(shift))) {
     local $/ = undef; # Read complete files
     my $data=<$IN>;
     close $IN;
@@ -2871,8 +2867,7 @@ sub ReadFileOrDie  {
 
 sub WriteStringToFile {
   my ($file, $string) = @_;
-  utf8::encode($file);
-  open(my $OUT, '>:encoding(UTF-8)', $file)
+  open(my $OUT, '>:encoding(UTF-8)', encode_utf8($file))
     or ReportError(Ts('Cannot write %s', $file) . ": $!", '500 INTERNAL SERVER ERROR');
   print $OUT  $string;
   close($OUT);
@@ -2880,18 +2875,27 @@ sub WriteStringToFile {
 
 sub AppendStringToFile {
   my ($file, $string) = @_;
-  utf8::encode($file);
-  open(my $OUT, '>>:encoding(UTF-8)', $file)
+  open(my $OUT, '>>:encoding(UTF-8)', encode_utf8($file))
     or ReportError(Ts('Cannot write %s', $file) . ": $!", '500 INTERNAL SERVER ERROR');
   print $OUT  $string;
   close($OUT);
 }
 
+sub IsFile    { return -f encode_utf8(shift); }
+sub IsDir     { return -d encode_utf8(shift); }
+sub ZeroSize  { return -z encode_utf8(shift); }
+sub Unlink    { return unlink(map { encode_utf8($_) } @_); }
+sub Modified  { return (stat(encode_utf8(shift)))[9]; }
+sub Glob      { return map { decode_utf8($_) } bsd_glob(encode_utf8(shift)); }
+sub ChangeMod { return chmod(shift, map { encode_utf8($_) } @_); }
+sub Rename    { return rename(encode_utf8($_[0]), encode_utf8($_[1])); }
+sub RemoveDir { return rmdir(encode_utf8(shift)); }
+sub ChangeDir { return chdir(encode_utf8(shift)); }
+
 sub CreateDir {
   my ($newdir) = @_;
-  utf8::encode($newdir);
-  return if -d $newdir;
-  mkdir($newdir, 0775)
+  return if IsDir($newdir);
+  mkdir(encode_utf8($newdir), 0775)
     or ReportError(Ts('Cannot create %s', $newdir) . ": $!", '500 INTERNAL SERVER ERROR');
 }
 
@@ -2907,9 +2911,11 @@ sub RequestLockDir {
   CreateDir($TempDir);
   my $lock = $LockDir . $name;
   my $n = 0;
-  while (mkdir($lock, 0555) == 0) {
+  # Cannot use CreateDir because we don't want to skip mkdir if the directory
+  # already exists.
+  while (mkdir(encode_utf8($lock), 0555) == 0) {
     if ($n++ >= $tries) {
-      my $ts = (stat($lock))[9];
+      my $ts = Modified($lock);
       if ($Now - $ts > $LockExpiration and $LockExpires{$name} and not $retried) { # XXX should we remove this now?
 	ReleaseLockDir($name); # try to expire lock (no checking)
 	return 1 if RequestLockDir($name, undef, undef, undef, 1);
@@ -2942,9 +2948,9 @@ sub CleanLock {
 }
 
 sub ReleaseLockDir {
-  my $name = shift;        # We don't check whether we succeeded.
-  rmdir($LockDir . $name); # Before fixing, make sure we only call this
-  delete $Locks{$name};    # when we know the lock exists.
+  my $name = shift;            # We don't check whether we succeeded.
+  RemoveDir($LockDir . $name); # Before fixing, make sure we only call this
+  delete $Locks{$name};        # when we know the lock exists.
 }
 
 sub RequestLockOrError {
@@ -2958,7 +2964,7 @@ sub ReleaseLock {
 sub ForceReleaseLock {
   my $pattern = shift;
   my $forced;
-  foreach my $name (bsd_glob $pattern) {
+  foreach my $name (Glob($pattern)) {
     # First try to obtain lock (in case of normal edit lock)
     $forced = 1 unless RequestLockDir($name, 5, 3, 0);
     ReleaseLockDir($name); # Release the lock, even if we didn't get it. This should not happen.
@@ -3227,10 +3233,10 @@ sub UserCanEdit {
   return 0 if $id eq 'SampleUndefinedPage' or $id eq T('SampleUndefinedPage')
     or $id eq 'Sample_Undefined_Page' or $id eq T('Sample_Undefined_Page');
   return 1 if UserIsAdmin();
-  return 0 if $id ne '' and -f GetLockedPageFile($id);
-  return 0 if $LockOnCreation{$id} and not -f GetPageFile($id); # new page
+  return 0 if $id ne '' and IsFile(GetLockedPageFile($id));
+  return 0 if $LockOnCreation{$id} and not IsFile(GetPageFile($id)); # new page
   return 1 if UserIsEditor();
-  return 0 if not $EditAllowed or -f $NoEditFile;
+  return 0 if not $EditAllowed or IsFile($NoEditFile);
   return 0 if $editing and UserIsBanned(); # this call is more expensive
   return 0 if $EditAllowed >= 2 and (not $CommentsPattern or $id !~ /$CommentsPattern/);
   return 1 if $EditAllowed >= 3 and GetParam('recent_edit', '') ne 'on' # disallow minor comments
@@ -3353,7 +3359,7 @@ sub AllPagesList {
   my $refresh = GetParam('refresh', 0);
   return @IndexList if @IndexList and not $refresh;
   SetParam('refresh', 0) if $refresh;
-  return @IndexList if not $refresh and -f $IndexFile and ReadIndex();
+  return @IndexList if not $refresh and IsFile($IndexFile) and ReadIndex();
   # If open fails just refresh the index
   RefreshIndex();
   return @IndexList;
@@ -3377,11 +3383,10 @@ sub RefreshIndex {
   @IndexList = ();
   %IndexHash = ();
   # If file exists and cannot be changed, error!
-  my $locked = RequestLockDir('index', undef, undef, -f $IndexFile);
-  foreach (bsd_glob("$PageDir/*.pg"), bsd_glob("$PageDir/.*.pg")) {
+  my $locked = RequestLockDir('index', undef, undef, IsFile($IndexFile));
+  foreach (Glob("$PageDir/*.pg"), Glob("$PageDir/.*.pg")) {
     next unless m|/.*/(.+)\.pg$|;
     my $id = $1;
-    utf8::decode($id);
     push(@IndexList, $id);
     $IndexHash{$id} = 1;
   }
@@ -3409,6 +3414,11 @@ sub DoSearch {
     if (GetParam('preview', '')) { # Preview button was used
       print GetHeader('', Ts('Preview: %s', $string . " &#x2192; " . $replacement));
       print $q->start_div({-class=>'content replacement'});
+      print GetFormStart(undef, 'post', 'replace');
+      print GetHiddenValue('search', $string);
+      print GetHiddenValue('replace', $replacement);
+      print GetHiddenValue('delete', GetParam('delete', 0));
+      print $q->submit(-value=>T('Go!')) . $q->end_form();
       @results = ReplaceAndDiff($re, UnquoteHtml($replacement));
     } else {
       print GetHeader('', Ts('Replaced: %s', $string . " &#x2192; " . $replacement));
@@ -3445,12 +3455,13 @@ sub PageIsUploadedFile {
   return if $OpenPageName eq $id;
   if ($IndexHash{$id}) {
     my $file = GetPageFile($id);
-    utf8::encode($file); # filenames are bytes!
-    open(my $FILE, '<:encoding(UTF-8)', $file)
-      or ReportError(Ts('Cannot open %s', $file) . ": $!", '500 INTERNAL SERVER ERROR');
+    open(my $FILE, '<:encoding(UTF-8)', encode_utf8($file))
+      or ReportError(Ts('Cannot open %s', GetPageFile($id))
+		     . ": $!", '500 INTERNAL SERVER ERROR');
     while (defined($_ = <$FILE>) and $_ !~ /^text: /) {
     }          # read lines until we get to the text key
     close $FILE;
+    return unless length($_) > 6;
     return TextIsFile(substr($_, 6)); # pass "#FILE image/png\n" to the test
   }
 }
@@ -3580,7 +3591,7 @@ sub SearchExtract {
 sub ReplaceAndSave {
   my ($from, $to) = @_;
   RequestLockOrError();   # fatal
-  my @result = Replace($from, $to, sub {
+  my @result = Replace($from, $to, 1, sub {
     my ($id, $new) = @_;
     Save($id, $new, $from . ' → ' . $to, 1, ($Page{host} ne $q->remote_addr()));
 		       });
@@ -3590,7 +3601,7 @@ sub ReplaceAndSave {
 
 sub ReplaceAndDiff {
   my ($from, $to) = @_;
-  my @found = Replace($from, $to, sub {
+  my @found = Replace($from, $to, 0, sub {
     my ($id, $new) = @_;
     print $q->h2(GetPageLink($id)), $q->div({-class=>'diff'}, ImproveDiff(DoDiff($Page{text}, $new)));
 		      });
@@ -3606,7 +3617,7 @@ sub ReplaceAndDiff {
 }
 
 sub Replace {
-  my ($from, $to, $func) = @_; # $func takes $id and $new text
+  my ($from, $to, $all, $func) = @_; # $func takes $id and $new text
   my $lang = GetParam('lang', '');
   my $num = GetParam('num', 10);
   my $offset = GetParam('offset', 0);
@@ -3626,7 +3637,7 @@ sub Replace {
     };
     if (s/$from/$replacement->()/egi) { # allows use of backreferences
       push (@result, $id);
-      $func->($id, $_) if @result > $offset and @result <= $offset + $num;
+      $func->($id, $_) if $all or @result > $offset and @result <= $offset + $num;
     }
   }
   return @result;
@@ -3680,7 +3691,7 @@ sub DoPost {
   # Banned Content
   my $summary = GetSummary();
   if (not UserIsEditor()) {
-    my $rule = BannedContent($string) || BannedContent($summary);
+    my $rule = BannedContent(NormalToFree($id)) || BannedContent($string) || BannedContent($summary);
     ReportError(T('Edit Denied'), '403 FORBIDDEN', undef, $q->p(T('The page contains banned text.')),
 		$q->p(T('Contact the wiki administrator for more information.')), $q->p($rule)) if $rule;
   }
@@ -3782,7 +3793,7 @@ sub Save {      # call within lock, with opened page
   my $revision = $Page{revision} + 1;
   my $old = $Page{text};
   my $olddiff = $Page{'diff-major'} == '1' ? $Page{'diff-minor'} : $Page{'diff-major'};
-  if ($revision == 1 and -e $IndexFile and not unlink($IndexFile)) { # regenerate index on next request
+  if ($revision == 1 and IsFile($IndexFile) and not Unlink($IndexFile)) { # regenerate index on next request
     SetParam('msg', Ts('Cannot delete the index file %s.', $IndexFile)
 	     . ' ' . T('Please check the directory permissions.')
 	     . ' ' . T('Your changes were not saved.'));
@@ -3842,8 +3853,7 @@ sub MergeRevisions {   # merge change from file2 to file3 into file1
   WriteStringToFile($name2, $file2);
   WriteStringToFile($name3, $file3);
   my ($you, $ancestor, $other) = (T('you'), T('ancestor'), T('other'));
-  my $output = `diff3 -m -L \Q$you\E -L \Q$ancestor\E -L \Q$other\E -- \Q$name1\E \Q$name2\E \Q$name3\E`;
-  utf8::decode($output); # needs decoding
+  my $output = decode_utf8(`diff3 -m -L \Q$you\E -L \Q$ancestor\E -L \Q$other\E -- \Q$name1\E \Q$name2\E \Q$name3\E`);
   ReleaseLockDir('merge'); # don't unlink temp files--next merge will just overwrite.
   return $output;
 }
@@ -3867,7 +3877,7 @@ sub DoMaintain {
   print GetHeader('', T('Run Maintenance')), $q->start_div({-class=>'content maintain'});
   my $fname = "$DataDir/maintain";
   if (not UserIsAdmin()) {
-    if ((-f $fname) and ((-M $fname) < 0.5)) {
+    if (IsFile($fname) and $Now - Modified($fname) < 0.5) {
       print $q->p(T('Maintenance not done.') . ' ' . T('(Maintenance can only be done once every 12 hours.)')
 		  . ' ', T('Remove the "maintain" file or wait.')), $q->end_div();
       PrintFooter();
@@ -3910,7 +3920,7 @@ sub DoMaintain {
   }
   if (opendir(DIR, $RssDir)) {  # cleanup if they should expire anyway
     foreach (readdir(DIR)) {
-      unlink "$RssDir/$_" if $Now - (stat($_))[9] > $RssCacheHours * 3600;
+      Unlink("$RssDir/$_") if $Now - Modified($_) > $RssCacheHours * 3600;
     }
     closedir DIR;
   }
@@ -3943,8 +3953,8 @@ sub DeletePage {    # Delete must be done inside locks.
   ValidIdOrDie($id);
   AppendStringToFile($DeleteFile, "$id\n");
   foreach my $name (GetPageFile($id), GetKeepFiles($id), GetKeepDir($id), GetLockedPageFile($id), $IndexFile) {
-    unlink $name if -f $name;
-    rmdir  $name if -d $name;
+    Unlink($name) if IsFile($name);
+    RemoveDir($name) if IsDir($name);
   }
   ReInit($id);
   delete $IndexHash{$id};
@@ -3959,10 +3969,10 @@ sub DoEditLock {
   if (GetParam("set", 1)) {
     WriteStringToFile($fname, 'editing locked.');
   } else {
-    unlink($fname);
+    Unlink($fname);
   }
   utime time, time, $IndexFile; # touch index file
-  print $q->p(-f $fname ? T('Edit lock created.') : T('Edit lock removed.'));
+  print $q->p(IsFile($fname) ? T('Edit lock created.') : T('Edit lock removed.'));
   PrintFooter();
 }
 
@@ -3975,10 +3985,10 @@ sub DoPageLock {
   if (GetParam('set', 1)) {
     WriteStringToFile($fname, 'editing locked.');
   } else {
-    unlink($fname);
+    Unlink($fname);
   }
   utime time, time, $IndexFile; # touch index file
-  print $q->p(-f $fname ? Ts('Lock for %s created.', GetPageLink($id))
+  print $q->p(IsFile($fname) ? Ts('Lock for %s created.', GetPageLink($id))
 	      : Ts('Lock for %s removed.', GetPageLink($id)));
   PrintFooter();
 }
@@ -4062,12 +4072,12 @@ sub WriteRecentVisitors {
   WriteStringToFile($VisitorFile, $data);
 }
 
-sub TextIsFile { $_[0] =~ /^#FILE (\S+) ?(\S+)?\n/ }
+sub TextIsFile { $_[0] =~ /^#FILE (\S+) ?(\S+)?\n/; }
 
 sub AddModuleDescription { # cannot use $q here because this is module init time
   my ($filename, $page, $dir, $tag) = @_;
   my $src = "http://git.savannah.gnu.org/cgit/oddmuse.git/tree/modules/$dir" . UrlEncode($filename) . ($tag ? '?' . $tag : '');
-  my $doc = 'http://www.oddmuse.org/cgi-bin/oddmuse/' . UrlEncode(FreeToNormal($page));
+  my $doc = 'https://www.oddmuse.org/cgi-bin/oddmuse/' . UrlEncode(FreeToNormal($page));
   $ModulesDescription .= "<p><a href=\"$src\">" . QuoteHtml($filename) . "</a>" . ($tag ? " ($tag)" : '');
   $ModulesDescription .= T(', see') . " <a href=\"$doc\">" . QuoteHtml($page) . "</a>" if $page;
   $ModulesDescription .= "</p>";

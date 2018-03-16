@@ -1,11 +1,11 @@
 #! -*- mode:apache-conf-generic -*-
 
-# lots of requests involving ?q=node/add
-Deny from 192.99.0.0/16
-# lots of requests looking for CMS weak spots
-Deny from 183.60.243.188
+order allow,deny
+deny from 193.156.31.0/24
+allow from all
 
-DirectoryIndex wiki.pl
+
+DirectoryIndex wiki
 AddDefaultCharset utf-8
 
 # ExpiresActive On
@@ -19,12 +19,13 @@ AddDefaultCharset utf-8
 AddType image/svg+xml svg svgz
 AddEncoding gzip svgz
 
+RedirectMatch permanent ^/$ https://oddmuse.org/wiki
 Redirect permanent /cgi-bin/wiki /wiki
 Redirect permanent /cgi-bin/oddmuse /wiki
 Redirect permanent /oddmuse.css /default.css
 
 RewriteEngine on
-RewriteRule ^favicon.ico /pics/oddmuse-logo.png [last]
+RewriteRule ^favicon.ico /pics/oddmuse-logo2-icon.png [last]
 # Deny all idiots that are looking for borked PHP applications
 # Status Code 402 is "Payment Required".
 RewriteRule \.php$ - [redirect=402]

@@ -22,7 +22,7 @@
 use utf8;
 use strict;
 
-AddModuleDescription('spanish-utf8.pl', 'Spanish', 'translations/', '2.3.5-309-ga8920bf') if defined &AddModuleDescription;
+AddModuleDescription('spanish-utf8.pl', 'Spanish', 'translations/', '2.3.10-48-g07b3169') if defined &AddModuleDescription;
 
 our %Translate = grep(!/^#/, split(/\n/,<<'END_OF_TRANSLATION'));
 ################################################################################
@@ -140,6 +140,8 @@ RSS with pages
 RSS con páginas
 RSS with pages and diff
 RSS con páginas y diff
+Using the ｢rollback｣ button on this page will reset the wiki to that particular point in time, undoing any later changes to all of the pages.
+
 Filters
 Filtros
 Title:
@@ -168,6 +170,8 @@ This page is too big to send over RSS.
 Esta página es demasiado grande para enviar a través de RSS
 History of %s
 Historia de %s
+Using the ｢rollback｣ button on this page will reset the page to that particular point in time, undoing any later changes to this page.
+
 Compare
 Comparar
 Deleted
@@ -289,6 +293,7 @@ Previsualizar
 Search:
 Buscar:
 f
+
 Replace:
 Reemplazar:
 Delete
@@ -438,7 +443,6 @@ Motivo desconocido.
 %s pages found.
 %s páginas encontradas.
 Preview: %s
-
 Vista previa: %s
 Replaced: %s
 Reemplazado: %s
@@ -715,6 +719,11 @@ Compilación para %s
 Compilation tag is missing a regular expression.
 La etiqueta de compilación omite una expresión regular.
 ################################################################################
+# modules/creationdate.pl
+################################################################################
+Add creation date to page files
+
+################################################################################
 # modules/css-install.pl
 ################################################################################
 Install CSS
@@ -853,6 +862,7 @@ No hay sumario disponible
 page was marked for deletion
 La página fue marcada para su eliminación
 Oddmuse
+
 Cleaning up git repository
 Limpiando el repositorio git
 ################################################################################
@@ -868,7 +878,7 @@ Esta página muestra las últimas veinte entradas del diario y sus botones +1.
 # modules/gravatar.pl
 ################################################################################
 Email:
-Correo electrónico:
+Correo:
 ################################################################################
 # modules/header-and-footer-templates.pl
 ################################################################################
@@ -1197,8 +1207,8 @@ All mail subscriptions
 Todas las suscripciones de correo
 Subscriptions
 Suscripciones
-Email:
-Correo:
+Email: 
+
 Show
 Mostrar
 Subscriptions for %s:
@@ -1242,8 +1252,8 @@ Test / Always enabled / Always disabled
 Probar / Siempre habilitado / Siempre deshabilitado
 Start
 Empezar
-Bisection proccess is already active.
-El proceso de bisección ya está activo.
+Bisecting proccess is already active.
+
 Stop
 Parar
 It seems like module %s is causing your problem.
@@ -1296,8 +1306,6 @@ Fetching results from %s:
 Recopilando resultados desde %s:
 Near pages:
 Páginas cercanas:
-Nearpages:
-PáginasCercanas:
 Include near pages
 Incluir Nearpages
 EditNearLinks
@@ -1469,6 +1477,21 @@ Lista de páginas para %s
 Index of all small pages
 Índice de todas las páginas breves o pequeñas
 ################################################################################
+# modules/sort.pl
+################################################################################
+Sort alphabetically
+
+Sorted alphabetically
+
+Sorted by last update first
+
+Sort by last update
+
+Sorted by creation date
+
+Sort by creation date
+
+################################################################################
 # modules/static-copy.pl
 ################################################################################
 Static Copy
@@ -1529,7 +1552,6 @@ Por favor, inténtalo de nuevo más tarde. Quizás alguien está ejecutando un m
 # modules/thumbs.pl
 ################################################################################
 thumb
-
 Miniatura
 Error creating thumbnail from nonexisting page %s.
 Error al crear miniatura desde la página %s que no existe.
@@ -1624,47 +1646,49 @@ http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=%s
 
 http://www.amazon.com/exec/obidos/ISBN=%s
 alternate
-alternativo
+alternate
+
 http://www.pricescan.com/books/BookDetail.asp?isbn=%s
 
 search
-buscar
+
 ################################################################################
 # modules/wanted.pl
 ################################################################################
 Wanted Pages
-Páginas Wanted
+
 %s pages
-% páginas
+
 %s, referenced from:
-%s, referenciada desde:
+
 ################################################################################
 # modules/webapp.pl
 ################################################################################
 Web application for offline browsing
-Aplicación web para navegación fuera de línea
+
 ################################################################################
 # modules/webdav.pl
 ################################################################################
 Upload of %s file
-Subida del archivo %s
+
 ################################################################################
 # modules/weblog-1.pl
 ################################################################################
 Blog
-Blog
+Matching pages:
 ################################################################################
 # modules/weblog-3.pl
 ################################################################################
 Matching pages:
-Páginas encontradas:
+
 New
-Nuevo
+
 Edit %s.
-Editar %s.
+
 ################################################################################
 # modules/weblog-4.pl
 ################################################################################
 Tags:
-Etiquetas:
+
+#
 END_OF_TRANSLATION

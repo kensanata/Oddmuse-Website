@@ -18,7 +18,7 @@
 use utf8;
 use strict;
 
-AddModuleDescription('german-utf8.pl', 'German', 'translations/', '2.3.5-309-ga8920bf') if defined &AddModuleDescription;
+AddModuleDescription('german-utf8.pl', 'German', 'translations/', '2.3.10-48-g07b3169') if defined &AddModuleDescription;
 
 our %Translate = grep(!/^#/, split(/\n/,<<'END_OF_TRANSLATION'));
 ################################################################################
@@ -89,9 +89,9 @@ Ungültige Seite %s (Darf nicht mit .lck enden)
 Invalid Page %s
 Ungültige Seite %s
 There are no comments, yet. Be the first to leave a comment!
-
+Es gibt noch keine Kommentare, sei der Erste der einen hinterlässt!
 Welcome!
-
+Willkommen!
 This page does not exist, but you can %s.
 Diese Seite gibt es nicht, aber du kannst %s.
 create it now
@@ -136,6 +136,8 @@ RSS with pages
 RSS mit ganzen Seiten
 RSS with pages and diff
 RSS mit ganzen Seiten und Unterschieden zur Vorversion
+Using the ｢rollback｣ button on this page will reset the wiki to that particular point in time, undoing any later changes to all of the pages.
+Mit der Schaltfläche ｢zurück setzen｣ wird die gesamte Wiki auf den damals aktuellen Stand zurück gesetzt. Alle nachfolgenden Änderungen auf allen Seiten werden rückgängig gemacht.
 Filters
 Filter
 Title:
@@ -164,6 +166,8 @@ This page is too big to send over RSS.
 Diese Seite ist zu gross für RSS.
 History of %s
 Andere Versionen von %s
+Using the ｢rollback｣ button on this page will reset the page to that particular point in time, undoing any later changes to this page.
+Mit der Schaltfläche ｢zurück setzen｣ wird diese Seite auf den damals aktuellen Stand zurück gesetzt. Alle nachfolgenden Änderungen werden rückgängig gemacht.
 Compare
 Vergleichen
 Deleted
@@ -343,9 +347,9 @@ Die Sperre wurde %s gesetzt.
 Maybe the user running this script is no longer allowed to remove the lock directory?
 Vielleicht darf der user, welcher dieses script ausführt, das Sperr-Verzeichnis nicht löschen?
 Sometimes locks are left behind if a job crashes.
-
+Manchmal bleiben Sperren erhalten, wenn ein Prozess abbricht.
 After ten minutes, you could try to unlock the wiki.
-
+Nach zehn Minuten kann versucht werden, das Wiki zu entsperren.
 This operation may take several seconds...
 Das könnte einige Sekunden dauern...
 Forced unlock of %s lock.
@@ -435,7 +439,7 @@ Grund unbekannt.
 %s pages found.
 %s Seiten gefunden.
 Preview: %s
-
+Vorschau: %s
 Replaced: %s
 Ersetzt: %s
 Search for: %s
@@ -711,6 +715,11 @@ Zusammenstellung für %s
 Compilation tag is missing a regular expression.
 Der tag für die Zusammenstellung benötigt noch ein Suchmuster.
 ################################################################################
+# modules/creationdate.pl
+################################################################################
+Add creation date to page files
+Erstellungsdatum zu den Seiten hinzufügen
+################################################################################
 # modules/css-install.pl
 ################################################################################
 Install CSS
@@ -786,7 +795,7 @@ Kommentar hinzufügen
 ordinary changes
 normale Änderungen
 %s days
-
+%s Tage
 ################################################################################
 # modules/edit-paragraphs.pl
 ################################################################################
@@ -1239,8 +1248,8 @@ Test / Always enabled / Always disabled
 Test / Immer aktiv / Immer deaktiviert
 Start
 Start
-Bisection proccess is already active.
-Der Bisektionsprozess ist schon aktiv.
+Bisecting proccess is already active.
+Bisektion findet schon statt
 Stop
 Stop
 It seems like module %s is causing your problem.
@@ -1398,9 +1407,9 @@ Portrait
 # modules/preview.pl
 ################################################################################
 Pages with changed HTML
-
+Seiten mit geändertem HTML
 Preview changes in HTML output
-
+Vorschau der Änderungen der HTML-Ausgabe
 ################################################################################
 # modules/private-pages.pl
 ################################################################################
@@ -1463,6 +1472,21 @@ Seitenliste für %s
 ################################################################################
 Index of all small pages
 Verzeichnis aller kleinen Seiten
+################################################################################
+# modules/sort.pl
+################################################################################
+Sort alphabetically
+Alphabetisch sortieren
+Sorted alphabetically
+Alphabetisch sortiert
+Sorted by last update first
+Nach Änderungsdatum sortiert
+Sort by last update
+Nach Änderungsdatum sortieren
+Sorted by creation date
+Nach Erstellungsdatum sortiert
+Sort by creation date
+Nach Erstellungsdatum sortieren
 ################################################################################
 # modules/static-copy.pl
 ################################################################################
@@ -1662,4 +1686,5 @@ Edit %s.
 ################################################################################
 Tags:
 Tags:
+#
 END_OF_TRANSLATION

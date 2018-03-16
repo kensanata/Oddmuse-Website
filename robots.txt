@@ -5,6 +5,20 @@ User-agent: AhrefsBot
 User-agent: SeznamBot
 User-agent: daumoa
 User-agent: SputnikBot
+User-agent: WBSearchBot
+User-agent: Yeti
+User-agent: sogou spider
+User-agent: NaverBot
+User-agent: sistrix
+User-agent: spbot
+User-agent: wiederfreibot/1.0
+User-agent: dotbot
+User-agent: SemrushBot
+User-agent: SemrushBot-SA
+User-agent: XoviBot
+User-agent: Linguee
+User-agent: seoscanners.net
+User-agent: BUbiNG
 Disallow: /
 
 User-agent: *

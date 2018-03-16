@@ -51,13 +51,13 @@ a.image:hover img {
 }
 
 /* a.definition soll aussehen wie h2 */
-h2, p a.definition {
+h2, p > a.definition {
     display: block;
     clear: both;
 }
 
 /* Such Link im h1 soll nicht auffallen. */
-h1, h2, h3, h4, h1 a, h1 a:visited, p a.definition {
+h1, h2, h3, h4, h1 a, h1 a:visited, p > a.definition {
     color: #666;
     font-size: 30pt;
     font-weight: normal;
@@ -218,51 +218,4 @@ tt, pre, code {
 code {
     background: #eee;
     white-space: pre-wrap;
-}
-
-@font-face {
-  font-family: 'Gentium Basic';
-  font-style: normal;
-  font-weight: 700;
-  src: local('Gentium Basic Bold'), local('GentiumBasic-Bold'), url(/fonts/GenBasB.woff) format('woff');
-}
-
-@font-face {
-  font-family: 'Gentium Basic';
-  font-style: italic;
-  font-weight: 400;
-  src: local('Gentium Basic Italic'), local('GentiumBasic-Italic'), url(/fonts/GenBasI.woff) format('woff');
-}
-
-@font-face {
-  font-family: 'Gentium Basic';
-  font-style: italic;
-  font-weight: 700;
-  src: local('Gentium Basic Bold Italic'), local('GentiumBasic-BoldItalic'), url(/fonts/GenBasBI.woff) format('woff');
-}
-
-@font-face {
-  font-family: 'Gentium Basic';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Gentium Basic'), local('GentiumBasic'), url(/fonts/GenBasR.woff) format('woff');
-}
-
-@font-face {
-  font-family: 'Gentium Plus';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Gentium Plus'), local('GentiumPlus'), url(/fonts/GentiumPlus-R.woff) format('woff');
-}
-
-@font-face {
-  font-family: 'Gentium Plus';
-  font-style: italic;
-  font-weight: 400;
-  src: local('Gentium Plus Italic'), local('GentiumPlus-Italic'), url(/fonts/GentiumPlus-I.woff) format('woff');
-}
-
-@font-face {
-  font-family: 'Symbola';
-  src: local('Symbola'), url('/fonts/Symbola.woff') format('woff') url('/fonts/Symbola.ttf') format('truetype');
 }

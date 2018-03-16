@@ -28,7 +28,7 @@
 use utf8;
 use strict;
 
-AddModuleDescription('chinese_cn-utf8.pl', 'Chinese', 'translations/', '2.3.5-309-ga8920bf') if defined &AddModuleDescription;
+AddModuleDescription('chinese_cn-utf8.pl', 'Chinese', 'translations/', '2.3.10-48-g07b3169') if defined &AddModuleDescription;
 our $SiteName = '我的Wiki'; # Name of site (used for titles)
 our $HomePage = '首页'; # Home page
 our $NewText = "新页面内容\n"; # New page text
@@ -155,6 +155,8 @@ RSS with pages
 RSS和页面
 RSS with pages and diff
 RSS和页面以及差异
+Using the ｢rollback｣ button on this page will reset the wiki to that particular point in time, undoing any later changes to all of the pages.
+
 Filters
 过滤器
 Title:
@@ -183,6 +185,8 @@ This page is too big to send over RSS.
 页面太大，无法通过RSS发送。
 History of %s
 %s的历史记录
+Using the ｢rollback｣ button on this page will reset the page to that particular point in time, undoing any later changes to this page.
+
 Compare
 比较
 Deleted
@@ -730,6 +734,11 @@ Compilation for %s
 Compilation tag is missing a regular expression.
 汇编标志缺少一个正规表达式。
 ################################################################################
+# modules/creationdate.pl
+################################################################################
+Add creation date to page files
+
+################################################################################
 # modules/css-install.pl
 ################################################################################
 Install CSS
@@ -1258,7 +1267,7 @@ Test / Always enabled / Always disabled
 
 Start
 
-Bisection proccess is already active.
+Bisecting proccess is already active.
 
 Stop
 
@@ -1483,6 +1492,21 @@ Page list for %s
 Index of all small pages
 索引所有小页面
 ################################################################################
+# modules/sort.pl
+################################################################################
+Sort alphabetically
+
+Sorted alphabetically
+
+Sorted by last update first
+
+Sort by last update
+
+Sorted by creation date
+
+Sort by creation date
+
+################################################################################
 # modules/static-copy.pl
 ################################################################################
 Static Copy
@@ -1681,4 +1705,5 @@ Edit %s.
 ################################################################################
 Tags:
 标签：
+#
 END_OF_TRANSLATION

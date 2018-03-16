@@ -20,7 +20,7 @@
 use utf8;
 use strict;
 
-AddModuleDescription('polish-utf8.pl', 'Polish', 'translations/', '2.3.5-309-ga8920bf') if defined &AddModuleDescription;
+AddModuleDescription('polish-utf8.pl', 'Polish', 'translations/', '2.3.10-48-g07b3169') if defined &AddModuleDescription;
 
 our %Translate = grep(!/^#/, split(/\n/,<<'END_OF_TRANSLATION'));
 ################################################################################
@@ -138,6 +138,8 @@ RSS with pages
 RSS ze stronami
 RSS with pages and diff
 RSS ze stronami i spisem różnic
+Using the ｢rollback｣ button on this page will reset the wiki to that particular point in time, undoing any later changes to all of the pages.
+
 Filters
 Filtry
 Title:
@@ -166,6 +168,8 @@ This page is too big to send over RSS.
 Ta strona jest zbyt duża, żeby ją wysłać przez RSS.
 History of %s
 Historia %s
+Using the ｢rollback｣ button on this page will reset the page to that particular point in time, undoing any later changes to this page.
+
 Compare
 Porównaj
 Deleted
@@ -713,6 +717,11 @@ Kompilacja dla %s
 Compilation tag is missing a regular expression.
 Brak wyrażenia regularnego w znaczniku kompilacji.
 ################################################################################
+# modules/creationdate.pl
+################################################################################
+Add creation date to page files
+
+################################################################################
 # modules/css-install.pl
 ################################################################################
 Install CSS
@@ -1241,7 +1250,7 @@ Test / Always enabled / Always disabled
 
 Start
 
-Bisection proccess is already active.
+Bisecting proccess is already active.
 
 Stop
 
@@ -1466,6 +1475,21 @@ Page list for %s
 Index of all small pages
 Spis wszystkich małych stron
 ################################################################################
+# modules/sort.pl
+################################################################################
+Sort alphabetically
+
+Sorted alphabetically
+
+Sorted by last update first
+
+Sort by last update
+
+Sorted by creation date
+
+Sort by creation date
+
+################################################################################
 # modules/static-copy.pl
 ################################################################################
 Static Copy
@@ -1664,4 +1688,5 @@ Edycja %s.
 ################################################################################
 Tags:
 Znaczniki:
+#
 END_OF_TRANSLATION
