@@ -19,7 +19,6 @@ AddDefaultCharset utf-8
 AddType image/svg+xml svg svgz
 AddEncoding gzip svgz
 
-RedirectMatch permanent ^/$ https://oddmuse.org/wiki
 Redirect permanent /cgi-bin/wiki /wiki
 Redirect permanent /cgi-bin/oddmuse /wiki
 Redirect permanent /oddmuse.css /default.css

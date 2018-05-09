@@ -1,5 +1,5 @@
 #! /usr/bin/perl
-# Copyright (C) 2001-2015
+# Copyright (C) 2001-2018
 #     Alex Schroeder <alex@gnu.org>
 # Copyright (C) 2014-2015
 #     Alex Jakimenko <alex.jakimenko@gmail.com>
@@ -35,6 +35,7 @@ use warnings;
 no warnings 'numeric';
 no warnings 'uninitialized';
 use utf8; # in case anybody ever adds UTF8 characters to the source
+use B;
 use CGI qw/-utf8/;
 use CGI::Carp qw(fatalsToBrowser);
 use File::Glob ':glob';
@@ -124,6 +125,7 @@ our $DeletedPage = 'DeletedPage';   # Pages starting with this can be deleted
 our $RCName      = 'RecentChanges'; # Name of changes page
 our @RcDays      = qw(1 3 7 30 90); # Days for links on RecentChanges
 our $RcDefault   = 30;              # Default number of RecentChanges days
+our $KeepHostDays = 4;              # Days to keep IP numbers for
 our $KeepDays    = 0;               # Days to keep old revisions (0 means keep forever)
 our $KeepMajor   = 1;               # 1 = keep at least one major rev when expiring pages
 our $SummaryHours = 4;              # Hours to offer the old subject when editing a page
@@ -276,7 +278,7 @@ sub InitRequest { # set up $q
 }
 
 sub InitVariables {  # Init global session variables for mod_perl!
-  $WikiDescription = $q->p($q->a({-href=>'https://git.savannah.gnu.org/cgit/oddmuse.git/tag/?id=2.3.10-48-g07b3169'}, 'wiki.pl') . ' (2.3.10-48-g07b3169), see ' . $q->a({-href=>'https://www.oddmuse.org/'}, 'Oddmuse'),
+  $WikiDescription = $q->p($q->a({-href=>'https://git.savannah.gnu.org/cgit/oddmuse.git/tag/?id=2.3.11-14-g27156d64'}, 'wiki.pl') . ' (2.3.11-14-g27156d64), see ' . $q->a({-href=>'https://www.oddmuse.org/'}, 'Oddmuse'),
 			   $Counter++ > 0 ? Ts('%s calls', $Counter) : '');
   $WikiDescription .= $ModulesDescription if $ModulesDescription;
   $HeaderIsPrinted = 0; # print HTTP headers only once
@@ -1757,7 +1759,7 @@ sub RcHtml {
        $languages, $cluster, $last) = @_;
     my $all_revision = $last ? undef : $revision; # no revision for the last one
     $host = QuoteHtml($host);
-    my $author = GetAuthorLink($host, $username);
+    my $author = GetAuthorLink($username, $host);
     my $sum = $summary ? $q->span({class=>'dash'}, ' &#8211; ')
       . $q->strong(QuoteHtml($summary)) : '';
     my $edit = $minor ? $q->em({class=>'type'}, T('(minor)')) : '';
@@ -1840,7 +1842,7 @@ sub RcTextRevision {
        : ($UsePathInfo ? '/' : '?') . UrlEncode($id));
   print "\n", RcTextItem('title', NormalToFree($id)),
     RcTextItem('description', $summary),
-    RcTextItem('generator', GetAuthor($host, $username)),
+    RcTextItem('generator', GetAuthor($username)),
     RcTextItem('language', join(', ', @{$languages})), RcTextItem('link', $link),
     RcTextItem('last-modified', TimeToW3($ts)),
     RcTextItem('revision', $revision),
@@ -1925,7 +1927,6 @@ sub RssItem {
   }
   my $date = TimeToRFC822($ts);
   $username = QuoteHtml($username);
-  $username ||= $host;
   my $rss = "<item>\n";
   $rss .= "<title>$name</title>\n";
   my $link = ScriptUrl(GetParam('all', $cluster)
@@ -2034,8 +2035,7 @@ sub GetHistoryLine {
     $html .= ' ' . GetOldPageLink('browse', $id, $revision,
           Ts('Revision %s', $revision));
   }
-  my $host = $data{host} || $data{ip};
-  $html .= T(' . . . .') . ' ' . GetAuthorLink($host, $data{username});
+  $html .= T(' . . . .') . ' ' . GetAuthorLink($data{username});
   $html .= $q->span({class=>'dash'}, ' &#8211; ')
     . $q->strong(QuoteHtml($data{summary})) if $data{summary};
   $html .= ' ' . $q->em({class=>'type'}, T('(minor)')) . ' ' if $data{minor};
@@ -2197,26 +2197,37 @@ sub ScriptLinkDiff {
   return ScriptLink($action, $text, 'diff');
 }
 
+sub ColorCode {
+  my ($str) = @_;
+  my $num = unpack("L",B::hash($str)); # 32-bit integer
+  my $code = sprintf("%o", $num); # octal is 0-7
+  my @indexes = split(//, substr($code, 0, 4)); # four numbers
+  my @colors = qw/red orange yellow green blue indigo violet white/;
+  return $q->span({-class => 'ip-code', -title => T('Anonymous')},
+		  join('', map { $q->span({-class => $colors[$_]}, $_) }
+		       @indexes));
+}
+
 sub GetAuthor {
-  my ($host, $username) = @_;
-  return $username . ' ' . Ts('from %s', $host) if $username and $host;
+  my ($username) = @_;
   return $username if $username;
-  return T($host); # could be 'Anonymous'
+  return T('Anonymous');
 }
 
 sub GetAuthorLink {
-  my ($host, $username) = @_;
+  my ($username, $host) = @_;
   $username = FreeToNormal($username);
   my $name = NormalToFree($username);
   if (ValidId($username) ne '') { # ValidId() returns error string
     $username = '';     # Just pretend it isn't there.
   }
   if ($username and $RecentLink) {
-    return ScriptLink(UrlEncode($username), $name, 'author', undef, $host);
+    return ScriptLink(UrlEncode($username), $name, 'author');
   } elsif ($username) {
     return $q->span({-class=>'author'}, $name);
   }
-  return T($host); # could be 'Anonymous'
+  return T('Anonymous') if $host eq 'Anonymous';
+  return ColorCode($host);
 }
 
 sub GetHistoryLink {
@@ -2437,7 +2448,7 @@ sub GetFooterTimestamp {
   $page //= \%Page;
   if ($id and $rev ne 'history' and $rev ne 'edit' and $page->{revision}) {
     my @elements = (($rev eq '' ? T('Last edited') : T('Edited')), TimeToText($page->{ts}),
-		    Ts('by %s', GetAuthorLink($page->{host}, $page->{username})));
+		    Ts('by %s', GetAuthorLink($page->{username})));
     push(@elements, ScriptLinkDiff(2, $id, T('(diff)'), $rev)) if $UseDiff and $page->{revision} > 1;
     return $q->div({-class=>'time'}, @elements);
   }
@@ -2522,7 +2533,7 @@ sub GetFormStart {
 sub GetSearchForm {
   my $html = GetFormStart(undef, 'get', 'search') . $q->start_p;
   $html .= $q->label({-for=>'search'}, T('Search:')) . ' '
-      . $q->textfield(-name=>'search', -id=>'search', -size=>20, -accesskey=>T('f')) . ' ';
+      . $q->textfield(-name=>'search', -id=>'search', -size=>15, -accesskey=>T('f')) . ' ';
   if (GetParam('search') ne '' and UserIsAdmin()) { # see DoBrowseRequest
     $html .= $q->label({-for=>'replace'}, T('Replace:')) . ' '
 	. $q->textfield(-name=>'replace', -id=>'replace', -size=>20) . ' '
@@ -2532,11 +2543,11 @@ sub GetSearchForm {
   }
   if (GetParam('matchingpages', $MatchingPages)) {
     $html .= $q->label({-for=>'matchingpage'}, T('Filter:')) . ' '
-	. $q->textfield(-name=>'match', -id=>'matchingpage', -size=>20) . ' ';
+	. $q->textfield(-name=>'match', -id=>'matchingpage', -size=>15) . ' ';
   }
   if (%Languages) {
     $html .= $q->label({-for=>'searchlang'}, T('Language:')) . ' '
-	. $q->textfield(-name=>'lang', -id=>'searchlang', -size=>10, -default=>GetParam('lang', '')) . ' ';
+	. $q->textfield(-name=>'lang', -id=>'searchlang', -size=>5, -default=>GetParam('lang', '')) . ' ';
   }
   $html .= $q->submit('dosearch', T('Go!')) . $q->end_p . $q->end_form;
   return $html;
@@ -3526,20 +3537,19 @@ sub PrintSearchResult {
   $entry{size} = int((length($text) / 1024) + 1) . 'K';
   $entry{'last-modified'} = TimeToText($Page{ts});
   $entry{username} = $Page{username};
-  $entry{host} = $Page{host};
   PrintSearchResultEntry(\%entry);
 }
 
 sub PrintSearchResultEntry {
   my %entry = %{(shift)}; # get value from reference
   if (GetParam('raw', 0)) {
-    $entry{generator} = GetAuthor($entry{host}, $entry{username});
-    foreach my $key (qw(title description size last-modified generator username host)) {
+    $entry{generator} = GetAuthor($entry{username});
+    foreach my $key (qw(title description size last-modified generator username)) {
       print RcTextItem($key, $entry{$key});
     }
     print RcTextItem('link', "$ScriptName?$entry{title}"), "\n";
   } else {
-    my $author = GetAuthorLink($entry{host}, $entry{username});
+    my $author = GetAuthorLink($entry{username});
     $author ||= $entry{generator};
     my $id = $entry{title};
     my ($class, $resolved, $title, $exists) = ResolveId($id);
@@ -3593,8 +3603,8 @@ sub ReplaceAndSave {
   RequestLockOrError();   # fatal
   my @result = Replace($from, $to, 1, sub {
     my ($id, $new) = @_;
-    Save($id, $new, $from . ' → ' . $to, 1, ($Page{host} ne $q->remote_addr()));
-		       });
+    Save($id, $new, $from . ' → ' . $to, 1);
+  });
   ReleaseLock();
   return @result;
 }
@@ -3713,9 +3723,7 @@ sub DoPost {
   }
   my $newAuthor = 0;
   if ($oldrev) { # the first author (no old revision) is not considered to be "new"
-    # prefer usernames for potential new author detection
     $newAuthor = 1 if not $Page{username} or $Page{username} ne GetParam('username', '');
-    $newAuthor = 1 if not $q->remote_addr() or not $Page{host} or $q->remote_addr() ne $Page{host};
   }
   my $oldtime = $Page{ts};
   my $myoldtime = GetParam('oldtime', ''); # maybe empty!
@@ -3789,7 +3797,6 @@ sub AddComment {
 sub Save {      # call within lock, with opened page
   my ($id, $new, $summary, $minor, $upload) = @_;
   my $user = GetParam('username', '');
-  my $host = $q->remote_addr();
   my $revision = $Page{revision} + 1;
   my $old = $Page{text};
   my $olddiff = $Page{'diff-major'} == '1' ? $Page{'diff-minor'} : $Page{'diff-major'};
@@ -3805,8 +3812,8 @@ sub Save {      # call within lock, with opened page
   ExpireKeepFiles();
   $Page{lastmajor} = $revision unless $minor;
   $Page{lastmajorsummary} = $summary unless $minor;
-  @Page{qw(ts revision summary username host minor text)} =
-      ($Now, $revision, $summary, $user, $host, $minor, $new);
+  @Page{qw(ts revision summary username minor text)} =
+      ($Now, $revision, $summary, $user, $minor, $new);
   if ($UseDiff and $UseCache > 1 and $revision > 1 and not $upload and not TextIsFile($old)) {
     UpdateDiffs($old, $new, $olddiff); # sets diff-major and diff-minor
   }
@@ -3817,6 +3824,7 @@ sub Save {      # call within lock, with opened page
   if ($revision == 1 and $LockOnCreation{$id}) {
     WriteStringToFile(GetLockedPageFile($id), 'LockOnCreation');
   }
+  my $host = $q->remote_addr();
   WriteRcLog($id, $summary, $minor, $revision, $user, $host, $languages, GetCluster($new));
   AddToIndex($id) if ($revision == 1);
 }
@@ -3890,7 +3898,7 @@ sub DoMaintain {
   RequestLockOrError();
   print $q->p(T('Main lock obtained.'));
   print $q->p(Ts('Moving part of the %s log file.', $RCName));
-  # Determine the number of days to go back
+  # Determine the number of days to go back, default is largest of @RcDays
   my $days = 0;
   foreach (@RcDays) {
     $days = $_ if $_ > $days;
@@ -3901,23 +3909,36 @@ sub DoMaintain {
   if (not $status) {
     print $q->p($q->strong(Ts('Could not open %s log file', $RCName) . ':') . ' ' . $RcFile),
       $q->p(T('Error was') . ':'), $q->pre($!), $q->p(T('Note: This error is normal if no changes have been made.'));
+  } else {
+    WriteStringToFile($RcFile . '.old', $data);
   }
   # Move the old stuff from rc to temp
   my @rc = split(/\n/, $data);
   my @tmp = ();
-  for my $line (@rc) {
+  my $line;
+  my $changed = 0;
+  while ($line = shift(@rc)) {
     my ($ts, $id, $minor, $summary, $host, @rest) = split(/$FS/, $line);
     last if $ts >= $starttime;
     push(@tmp, join($FS, $ts, $id, $minor, $summary, 'Anonymous', @rest));
+    $changed = 1;
   }
+  unshift(@rc, $line) if $line; # this one ended the loop
   print $q->p(Ts('Moving %s log entries.', scalar(@tmp)));
-  if (@tmp) {
-    # Write new files, and backups
-    AppendStringToFile($RcOldFile, join("\n", @tmp) . "\n");
-    WriteStringToFile($RcFile . '.old', $data);
-    splice(@rc, 0, scalar(@tmp)); # strip
-    WriteStringToFile($RcFile, @rc ? join("\n", @rc) . "\n" : '');
+  AppendStringToFile($RcOldFile, join("\n", @tmp) . "\n") if @tmp;
+  # remove IP numbers from all but the last few days
+  $starttime = $Now - $KeepHostDays * 86400; # 24*60*60
+  @tmp = ();
+  while ($line = shift(@rc)) {
+    my ($ts, $id, $minor, $summary, $host, @rest) = split(/$FS/, $line);
+    last if $ts >= $starttime;
+    push(@tmp, join($FS, $ts, $id, $minor, $summary, T('Anonymous'), @rest));
+    $changed = 1;
   }
+  unshift(@rc, $line) if $line; # this one ended the loop
+  unshift(@rc, @tmp) if @tmp;
+  print $q->p(Ts('Removing IP numbers from %s log entries.', scalar(@tmp)));
+  WriteStringToFile($RcFile, @rc ? join("\n", @rc) . "\n" : '') if $changed;
   if (opendir(DIR, $RssDir)) {  # cleanup if they should expire anyway
     foreach (readdir(DIR)) {
       Unlink("$RssDir/$_") if $Now - Modified($_) > $RssCacheHours * 3600;

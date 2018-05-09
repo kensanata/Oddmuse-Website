@@ -22,7 +22,7 @@
 use utf8;
 use strict;
 
-AddModuleDescription('spanish-utf8.pl', 'Spanish', 'translations/', '2.3.10-48-g07b3169') if defined &AddModuleDescription;
+AddModuleDescription('spanish-utf8.pl', 'Spanish', 'translations/', '2.3.11-14-g27156d64') if defined &AddModuleDescription;
 
 our %Translate = grep(!/^#/, split(/\n/,<<'END_OF_TRANSLATION'));
 ################################################################################
